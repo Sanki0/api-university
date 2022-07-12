@@ -122,3 +122,62 @@ func DeleteStudent(w http.ResponseWriter, r *http.Request) int64 {
 
 	return ro
 }
+
+/////
+
+//CREATE
+func CreatePage(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Create Page!\n")
+	CreateAlumno(w, r)
+	fmt.Fprintf(w, "Student created")
+
+}
+
+//READ
+func StudentPage(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Students Page: \n")
+	students := GetStudents()
+	if students == nil {
+		fmt.Fprintf(w, "No students found")
+	}
+	if students != nil {
+		json.NewEncoder(w).Encode(students)
+	}
+}
+
+func SingleStudentPage(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Single Student Page: \n")
+	student := GetSingleStudent(w, r)
+	if student.Nombre != "" {
+		json.NewEncoder(w).Encode(*student)
+	}
+	if student.Nombre == "" {
+		fmt.Fprintf(w, "No student found")
+	}
+}
+
+//UPDATE
+func UpdatePage(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Update Page!\n")
+
+	rowsAffected := UpdateStudentPage(w, r)
+	if rowsAffected > 0 {
+		fmt.Fprintf(w, "Student updated")
+	}
+	if rowsAffected == 0 {
+		fmt.Fprintf(w, "Student not updated")
+	}
+}
+
+//DELETE
+func DeleteStudentPage(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Delete Page!\n")
+
+	rowsAffected := DeleteStudent(w, r)
+	if rowsAffected > 0 {
+		fmt.Fprintf(w, "Student deleted")
+	}
+	if rowsAffected == 0 {
+		fmt.Fprintf(w, "Student not deleted")
+	}
+}
