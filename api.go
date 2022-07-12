@@ -1,8 +1,8 @@
 package main
 
 import (
-	"CRUD_ALUMNOS/api/handlers"
-	"database/sql"
+	"github.com/Sanki0/api-university/handlers"
+
 	"encoding/json"
 	"fmt"
 	"log"
@@ -11,32 +11,6 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 )
-
-type Student struct {
-	Nombre           string `json:"nombre"`
-	Dni              string `json:"dni"`
-	Direccion        string `json:"direccion"`
-	Fecha_nacimiento string `json:"fecha_nacimiento"`
-}
-
-func chkError(err error) {
-	if err != nil {
-		panic(err)
-	}
-}
-
-func PingDb(db *sql.DB) {
-	err := db.Ping()
-	chkError(err)
-}
-
-func connectionDB() *sql.DB {
-	db, err := sql.Open("mysql", "test_user:secret@tcp(db:3306)/test_database")
-	if err != nil {
-		panic(err.Error())
-	}
-	return db
-}
 
 func homePage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Welcome to the HomePage!")
