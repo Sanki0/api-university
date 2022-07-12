@@ -1,4 +1,4 @@
-module CRUD_ALUMNOS/api
+module github.com/Sanki0/api-university
 
 go 1.18
 
