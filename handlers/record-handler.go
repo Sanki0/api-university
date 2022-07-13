@@ -1,15 +1,16 @@
 package handlers
 
 import (
-	"github.com/Sanki0/api-university/models"
-	"github.com/Sanki0/api-university/utils"
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/Sanki0/api-university/models"
+	"github.com/Sanki0/api-university/utils"
 	_ "github.com/go-sql-driver/mysql"
 )
 
-func createRecord(w http.ResponseWriter, r *http.Request) {
+func createRecord(w http.ResponseWriter, r *http.Request) error {
 
 	var s models.Record
 	err := json.NewDecoder(r.Body).Decode(&s)
@@ -23,11 +24,15 @@ func createRecord(w http.ResponseWriter, r *http.Request) {
 	utils.ChkError(err)
 
 	result, err := stmt.Exec(s.Student, s.Course, s.Startdate, s.Finishdate)
-	utils.ChkError(err) //
+	if err != nil {
+		return err
+	}
 
 	id, err := result.LastInsertId()
 	utils.ChkError(err)
 	fmt.Fprintf(w, "Record created with id: %d\n", id)
+
+	return nil
 }
 
 func getRecords() []*models.Record {
@@ -126,8 +131,13 @@ func deleteRecord(w http.ResponseWriter, r *http.Request) int64 {
 //CREATE
 func CreateRecordPage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Create Record Page!\n")
-	createRecord(w, r)
-	fmt.Fprintf(w, "Record created")
+	err := createRecord(w, r)
+	if err != nil {
+		fmt.Fprintf(w, "Error creating record")
+	}
+	if err == nil {
+		fmt.Fprintf(w, "Record created")
+	}
 
 }
 
