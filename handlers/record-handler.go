@@ -3,11 +3,9 @@ package handlers
 import (
 	"github.com/Sanki0/api-university/models"
 	"github.com/Sanki0/api-university/utils"
-
 	"encoding/json"
 	"fmt"
 	"net/http"
-
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -21,7 +19,7 @@ func createRecord(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 	utils.PingDb(db)
 
-	stmt, err := db.Prepare("INSERT INTO records (student, course, startdate, finishdate) VALUES (?,?,?)")
+	stmt, err := db.Prepare("INSERT INTO records (student, course, startdate, finishdate) VALUES (?,?,?,?)")
 	utils.ChkError(err)
 
 	result, err := stmt.Exec(s.Student, s.Course, s.Startdate, s.Finishdate)

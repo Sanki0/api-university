@@ -2,11 +2,9 @@ package main
 
 import (
 	"github.com/Sanki0/api-university/handlers"
-
 	"fmt"
 	"log"
 	"net/http"
-
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 )
@@ -19,7 +17,7 @@ func main() {
 
 	r := mux.NewRouter()
 
-	//STUDENTS
+//STUDENTS
 	//CREATE STUDENT
 	r.HandleFunc("/student", handlers.CreateStudentPage).Methods("POST")
 
@@ -35,7 +33,7 @@ func main() {
 	//DELETE STUDENT
 	r.HandleFunc("/student", handlers.DeleteStudentPage).Methods("DELETE")
 
-	//COURSES
+//COURSES
 	//CREATE COURSE
 	r.HandleFunc("/course", handlers.CreateCoursePage).Methods("POST")
 
@@ -51,7 +49,7 @@ func main() {
 	//DELETE COURSE
 	r.HandleFunc("/course", handlers.DeleteCoursePage).Methods("DELETE")
 
-	//RECORDS
+//RECORDS
 	//CREATE RECORD
 	r.HandleFunc("/record", handlers.CreateRecordPage).Methods("POST")
 
