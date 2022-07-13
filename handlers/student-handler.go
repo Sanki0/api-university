@@ -21,7 +21,7 @@ func createAlumno(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 	utils.PingDb(db)
 
-	stmt, err := db.Prepare("INSERT INTO courses (nombre, descripcion,temas) VALUES (?,?,?)")
+	stmt, err := db.Prepare("INSERT INTO students (nombre, dni, direccion,fecha_nacimiento) VALUES (?,?,?,?)")
 	utils.ChkError(err)
 
 	result, err := stmt.Exec(s.Nombre, s.Dni, s.Direccion, s.Fecha_nacimiento)
