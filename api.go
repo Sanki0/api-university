@@ -19,22 +19,39 @@ func main() {
 
 	r := mux.NewRouter()
 
+	//STUDENTS
 	//CREATE STUDENT
-	r.HandleFunc("/student", handlers.CreatePage).Methods("POST")
+	r.HandleFunc("/student", handlers.CreateStudentPage).Methods("POST")
 
 	//READ ALL STUDENTS
-	r.HandleFunc("/students", handlers.StudentPage).Methods("GET")
+	r.HandleFunc("/students", handlers.ReadStudentsPage).Methods("GET")
 
 	//READ SINGLE STUDENT
-	r.HandleFunc("/student", handlers.SingleStudentPage).Methods("GET")
+	r.HandleFunc("/student", handlers.ReadStudentPage).Methods("GET")
 
 	//UPDATE STUDENT
-	r.HandleFunc("/student", handlers.UpdatePage).Methods("PUT")
+	r.HandleFunc("/student", handlers.UpdateStudentPage).Methods("PUT")
+
 	//DELETE STUDENT
 	r.HandleFunc("/student", handlers.DeleteStudentPage).Methods("DELETE")
 
-	//HOME PAGE
+	//COURSES
+	//CREATE COURSE
+	r.HandleFunc("/course", handlers.CreateCoursePage).Methods("POST")
 
+	//READ ALL COURSES
+	r.HandleFunc("/courses", handlers.ReadCoursesPage).Methods("GET")
+
+	//READ SINGLE COURSE
+	r.HandleFunc("/course", handlers.ReadCoursePage).Methods("GET")
+
+	//UPDATE COURSE
+	r.HandleFunc("/course", handlers.UpdateCoursePage).Methods("PUT")
+
+	//DELETE COURSE
+	r.HandleFunc("/course", handlers.DeleteCoursePage).Methods("DELETE")
+
+	//HOME PAGE
 	r.HandleFunc("/", homePage)
 	http.Handle("/", r)
 	log.Fatal(http.ListenAndServe(":8080", nil))

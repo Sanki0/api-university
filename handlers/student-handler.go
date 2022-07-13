@@ -11,7 +11,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-func CreateAlumno(w http.ResponseWriter, r *http.Request) {
+func createAlumno(w http.ResponseWriter, r *http.Request) {
 
 	var s models.Student
 	err := json.NewDecoder(r.Body).Decode(&s)
@@ -21,7 +21,7 @@ func CreateAlumno(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 	utils.PingDb(db)
 
-	stmt, err := db.Prepare("INSERT INTO students(nombre, dni, direccion, fecha_nacimiento) VALUES(?,?,?,?)")
+	stmt, err := db.Prepare("INSERT INTO courses (nombre, descripcion,temas) VALUES (?,?,?)")
 	utils.ChkError(err)
 
 	result, err := stmt.Exec(s.Nombre, s.Dni, s.Direccion, s.Fecha_nacimiento)
@@ -32,7 +32,7 @@ func CreateAlumno(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Student created with id: %d\n", id)
 }
 
-func GetStudents() []*models.Student {
+func getStudents() []*models.Student {
 
 	db := utils.ConnectionDB()
 	defer db.Close()
@@ -53,7 +53,7 @@ func GetStudents() []*models.Student {
 	return students
 }
 
-func GetSingleStudent(w http.ResponseWriter, r *http.Request) *models.Student {
+func getSingleStudent(w http.ResponseWriter, r *http.Request) *models.Student {
 	var a models.Student
 	err := json.NewDecoder(r.Body).Decode(&a)
 	utils.ChkError(err)
@@ -75,7 +75,7 @@ func GetSingleStudent(w http.ResponseWriter, r *http.Request) *models.Student {
 	return &s
 }
 
-func UpdateStudentPage(w http.ResponseWriter, r *http.Request) int64 {
+func updateStudent(w http.ResponseWriter, r *http.Request) int64 {
 	var s models.Student
 	err := json.NewDecoder(r.Body).Decode(&s)
 	utils.ChkError(err)
@@ -99,7 +99,7 @@ func UpdateStudentPage(w http.ResponseWriter, r *http.Request) int64 {
 
 }
 
-func DeleteStudent(w http.ResponseWriter, r *http.Request) int64 {
+func deleteStudent(w http.ResponseWriter, r *http.Request) int64 {
 	var a models.Student
 	err := json.NewDecoder(r.Body).Decode(&a)
 	utils.ChkError(err)
@@ -126,17 +126,17 @@ func DeleteStudent(w http.ResponseWriter, r *http.Request) int64 {
 /////
 
 //CREATE
-func CreatePage(w http.ResponseWriter, r *http.Request) {
+func CreateStudentPage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Create Page!\n")
-	CreateAlumno(w, r)
+	createAlumno(w, r)
 	fmt.Fprintf(w, "Student created")
 
 }
 
 //READ
-func StudentPage(w http.ResponseWriter, r *http.Request) {
+func ReadStudentsPage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Students Page: \n")
-	students := GetStudents()
+	students := getStudents()
 	if students == nil {
 		fmt.Fprintf(w, "No students found")
 	}
@@ -145,9 +145,9 @@ func StudentPage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func SingleStudentPage(w http.ResponseWriter, r *http.Request) {
+func ReadStudentPage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Single Student Page: \n")
-	student := GetSingleStudent(w, r)
+	student := getSingleStudent(w, r)
 	if student.Nombre != "" {
 		json.NewEncoder(w).Encode(*student)
 	}
@@ -157,10 +157,10 @@ func SingleStudentPage(w http.ResponseWriter, r *http.Request) {
 }
 
 //UPDATE
-func UpdatePage(w http.ResponseWriter, r *http.Request) {
+func UpdateStudentPage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Update Page!\n")
 
-	rowsAffected := UpdateStudentPage(w, r)
+	rowsAffected := updateStudent(w, r)
 	if rowsAffected > 0 {
 		fmt.Fprintf(w, "Student updated")
 	}
@@ -173,7 +173,7 @@ func UpdatePage(w http.ResponseWriter, r *http.Request) {
 func DeleteStudentPage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Delete Page!\n")
 
-	rowsAffected := DeleteStudent(w, r)
+	rowsAffected := deleteStudent(w, r)
 	if rowsAffected > 0 {
 		fmt.Fprintf(w, "Student deleted")
 	}
