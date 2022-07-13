@@ -51,6 +51,22 @@ func main() {
 	//DELETE COURSE
 	r.HandleFunc("/course", handlers.DeleteCoursePage).Methods("DELETE")
 
+	//RECORDS
+	//CREATE RECORD
+	r.HandleFunc("/record", handlers.CreateRecordPage).Methods("POST")
+
+	//READ ALL RECORDS
+	r.HandleFunc("/records", handlers.ReadRecordsPage).Methods("GET")
+
+	//READ SINGLE RECORD
+	r.HandleFunc("/record", handlers.ReadRecordPage).Methods("GET")
+
+	//UPDATE RECORD
+	r.HandleFunc("/record", handlers.UpdateRecordPage).Methods("PUT")
+
+	//DELETE RECORD
+	r.HandleFunc("/record", handlers.DeleteRecordPage).Methods("DELETE")
+
 	//HOME PAGE
 	r.HandleFunc("/", homePage)
 	http.Handle("/", r)
