@@ -166,7 +166,7 @@ func ReadCoursePage(w http.ResponseWriter, r *http.Request) {
 
 //UPDATE
 func UpdateCoursePage(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Update Page!\n")
+	fmt.Fprintf(w, "Update Course Page!\n")
 
 	rowsAffected := updateCourse(w, r)
 	if rowsAffected > 0 {

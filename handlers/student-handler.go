@@ -127,7 +127,7 @@ func deleteStudent(w http.ResponseWriter, r *http.Request) int64 {
 
 //CREATE
 func CreateStudentPage(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Create Page!\n")
+	fmt.Fprintf(w, "Create Student Page!\n")
 	createAlumno(w, r)
 	fmt.Fprintf(w, "Student created")
 
@@ -158,7 +158,7 @@ func ReadStudentPage(w http.ResponseWriter, r *http.Request) {
 
 //UPDATE
 func UpdateStudentPage(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Update Page!\n")
+	fmt.Fprintf(w, "Update Student Page!\n")
 
 	rowsAffected := updateStudent(w, r)
 	if rowsAffected > 0 {
@@ -171,7 +171,7 @@ func UpdateStudentPage(w http.ResponseWriter, r *http.Request) {
 
 //DELETE
 func DeleteStudentPage(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Delete Page!\n")
+	fmt.Fprintf(w, "Delete Student Page!\n")
 
 	rowsAffected := deleteStudent(w, r)
 	if rowsAffected > 0 {
