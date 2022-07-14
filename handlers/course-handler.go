@@ -3,6 +3,7 @@ package handlers
 import (
 	"github.com/Sanki0/api-university/models"
 	"github.com/Sanki0/api-university/utils"
+	"github.com/gorilla/mux"
 
 	"encoding/json"
 	"fmt"
@@ -17,11 +18,7 @@ func createCourse(w http.ResponseWriter, r *http.Request) error {
 	err := json.NewDecoder(r.Body).Decode(&s)
 	utils.ChkError(err)
 
-	db := utils.ConnectionDB()
-	defer db.Close()
-	utils.PingDb(db)
-
-	stmt, err := db.Prepare("INSERT INTO courses(nombre, descripcion, temas) VALUES(?,?,?)")
+	stmt, err := utils.DB.Prepare("INSERT INTO courses(nombre, descripcion, temas) VALUES(?,?,?)")
 	utils.ChkError(err)
 
 	result, err := stmt.Exec(s.Nombre, s.Descripcion, s.Temas)
@@ -37,11 +34,7 @@ func createCourse(w http.ResponseWriter, r *http.Request) error {
 
 func getCourses() []*models.Course {
 
-	db := utils.ConnectionDB()
-	defer db.Close()
-	utils.PingDb(db)
-
-	rows, err := db.Query("SELECT * FROM courses")
+	rows, err := utils.DB.Query("SELECT * FROM courses")
 	utils.ChkError(err)
 
 	var courses []*models.Course
@@ -57,15 +50,9 @@ func getCourses() []*models.Course {
 }
 
 func getSingleCourse(w http.ResponseWriter, r *http.Request) *models.Course {
-	var a models.Student
-	err := json.NewDecoder(r.Body).Decode(&a)
-	utils.ChkError(err)
+	nombre := mux.Vars(r)["nombre"]
 
-	db := utils.ConnectionDB()
-	defer db.Close()
-	utils.PingDb(db)
-
-	query, err := db.Query("SELECT * FROM courses WHERE nombre = ?", a.Nombre)
+	query, err := utils.DB.Query("SELECT * FROM courses WHERE nombre = ?", nombre)
 
 	utils.ChkError(err)
 
@@ -83,12 +70,10 @@ func updateCourse(w http.ResponseWriter, r *http.Request) int64 {
 	err := json.NewDecoder(r.Body).Decode(&s)
 	utils.ChkError(err)
 
-	db := utils.ConnectionDB()
-	defer db.Close()
-	utils.PingDb(db)
+
 
 	//prepare
-	stmt, err := db.Prepare("UPDATE courses SET nombre = ?, descripcion = ?, temas = ? WHERE nombre = ?")
+	stmt, err := utils.DB.Prepare("UPDATE courses SET nombre = ?, descripcion = ?, temas = ? WHERE nombre = ?")
 	utils.ChkError(err)
 
 	//execute
@@ -107,13 +92,9 @@ func deleteCourse(w http.ResponseWriter, r *http.Request) int64 {
 	err := json.NewDecoder(r.Body).Decode(&a)
 	utils.ChkError(err)
 
-	db := utils.ConnectionDB()
-	defer db.Close()
-	utils.PingDb(db)
-
 	//prepare
 
-	stmt, err := db.Prepare("DELETE FROM courses WHERE nombre = ?")
+	stmt, err := utils.DB.Prepare("DELETE FROM courses WHERE nombre = ?")
 	utils.ChkError(err)
 
 	//execute

@@ -8,6 +8,7 @@ import (
 	"github.com/Sanki0/api-university/models"
 	"github.com/Sanki0/api-university/utils"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gorilla/mux"
 )
 
 func createRecord(w http.ResponseWriter, r *http.Request) error {
@@ -16,11 +17,7 @@ func createRecord(w http.ResponseWriter, r *http.Request) error {
 	err := json.NewDecoder(r.Body).Decode(&s)
 	utils.ChkError(err)
 
-	db := utils.ConnectionDB()
-	defer db.Close()
-	utils.PingDb(db)
-
-	stmt, err := db.Prepare("INSERT INTO records (student, course, startdate, finishdate) VALUES (?,?,?,?)")
+	stmt, err := utils.DB.Prepare("INSERT INTO records (student, course, startdate, finishdate) VALUES (?,?,?,?)")
 	utils.ChkError(err)
 
 	result, err := stmt.Exec(s.Student, s.Course, s.Startdate, s.Finishdate)
@@ -37,11 +34,8 @@ func createRecord(w http.ResponseWriter, r *http.Request) error {
 
 func getRecords() []*models.Record {
 
-	db := utils.ConnectionDB()
-	defer db.Close()
-	utils.PingDb(db)
 
-	rows, err := db.Query("SELECT * FROM records")
+	rows, err := utils.DB.Query("SELECT * FROM records")
 	utils.ChkError(err)
 
 	var records []*models.Record
@@ -57,15 +51,10 @@ func getRecords() []*models.Record {
 }
 
 func getSingleRecord(w http.ResponseWriter, r *http.Request) *models.Record {
-	var a models.Record
-	err := json.NewDecoder(r.Body).Decode(&a)
-	utils.ChkError(err)
+	dni := mux.Vars(r)["dni"]
+	course := mux.Vars(r)["course"]
 
-	db := utils.ConnectionDB()
-	defer db.Close()
-	utils.PingDb(db)
-
-	query, err := db.Query("SELECT * FROM records WHERE student = ? AND course = ?", a.Student, a.Course)
+	query, err := utils.DB.Query("SELECT * FROM records WHERE student = ? AND course = ?", dni, course)
 
 	utils.ChkError(err)
 
@@ -83,12 +72,8 @@ func updateRecord(w http.ResponseWriter, r *http.Request) int64 {
 	err := json.NewDecoder(r.Body).Decode(&s)
 	utils.ChkError(err)
 
-	db := utils.ConnectionDB()
-	defer db.Close()
-	utils.PingDb(db)
-
 	//prepare
-	stmt, err := db.Prepare("UPDATE records SET startdate = ?, finishdate = ? WHERE student = ? AND course=?")
+	stmt, err := utils.DB.Prepare("UPDATE records SET startdate = ?, finishdate = ? WHERE student = ? AND course=?")
 	utils.ChkError(err)
 
 	//execute
@@ -107,13 +92,9 @@ func deleteRecord(w http.ResponseWriter, r *http.Request) int64 {
 	err := json.NewDecoder(r.Body).Decode(&a)
 	utils.ChkError(err)
 
-	db := utils.ConnectionDB()
-	defer db.Close()
-	utils.PingDb(db)
-
 	//prepare
 
-	stmt, err := db.Prepare("DELETE FROM records WHERE student = ? AND course =?")
+	stmt, err := utils.DB.Prepare("DELETE FROM records WHERE student = ? AND course =?")
 	utils.ChkError(err)
 
 	//execute

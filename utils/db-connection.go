@@ -2,9 +2,12 @@ package utils
 
 import (
 	"database/sql"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 )
+
+var DB *sql.DB
 
 func ChkError(err error) {
 	if err != nil {
@@ -12,15 +15,17 @@ func ChkError(err error) {
 	}
 }
 
-func PingDb(db *sql.DB) {
-	err := db.Ping()
-	ChkError(err)
-}
 
-func ConnectionDB() *sql.DB {
+func InitDB() {
 	db, err := sql.Open("mysql", "test_user:secret@tcp(db:3306)/test_database")
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
-	return db
+
+	db.SetMaxIdleConns(25)
+	db.SetMaxOpenConns(25)
+	db.SetConnMaxLifetime(5*time.Minute)
+
+	DB = db;
+	
 }
