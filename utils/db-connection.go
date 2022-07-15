@@ -25,6 +25,8 @@ func InitDB() {
 	db.SetMaxIdleConns(25)
 	db.SetMaxOpenConns(25)
 	db.SetConnMaxLifetime(5*time.Minute)
+	db.SetConnMaxIdleTime(3*time.Minute)
+
 
 	DB = db;
 	
