@@ -11,32 +11,45 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func createRecord(w http.ResponseWriter, r *http.Request) error {
+func createRecord(w http.ResponseWriter, r *http.Request) (int64, error) {
 
 	var s models.Record
 	err := json.NewDecoder(r.Body).Decode(&s)
 	utils.ChkError(err)
 
 	stmt, err := utils.DB.Prepare("INSERT INTO records (student, course, startdate, finishdate) VALUES (?,?,?,?)")
-	utils.ChkError(err)
+	if err != nil {
+		err = fmt.Errorf("Error preparing query\n %q", err.Error())
+		utils.RespondWithError(w, http.StatusNotFound, err.Error())
+		return -1,err
+	}
 
 	result, err := stmt.Exec(s.Student, s.Course, s.Startdate, s.Finishdate)
 	if err != nil {
-		return err
+		err = fmt.Errorf("Error executing query\n %q", err.Error())
+
+		utils.RespondWithError(w, http.StatusConflict, err.Error())
+		return -1,err
 	}
 
 	id, err := result.LastInsertId()
 	utils.ChkError(err)
-	fmt.Fprintf(w, "Record created with id: %d\n", id)
 
-	return nil
+	w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusCreated)
+
+	return id, nil
 }
 
-func getRecords() []*models.Record {
+func getRecords(w http.ResponseWriter) ([]*models.Record, error) {
 
 
 	rows, err := utils.DB.Query("SELECT * FROM records")
-	utils.ChkError(err)
+	if err != nil {
+		err = fmt.Errorf("Error executing query\n %q", err.Error())
+		utils.RespondWithError(w, http.StatusNotFound, err.Error())
+		return nil,err
+	}
 
 	var records []*models.Record
 
@@ -47,16 +60,24 @@ func getRecords() []*models.Record {
 		records = append(records, &record)
 	}
 
-	return records
+	if(records == nil){
+		w.Header().Set("Content-Type", "application/json")
+    	w.WriteHeader(http.StatusNotFound)
+	}
+
+	return records,nil
 }
 
-func getSingleRecord(w http.ResponseWriter, r *http.Request) *models.Record {
+func getSingleRecord(w http.ResponseWriter, r *http.Request) (*models.Record, error) {
 	dni := mux.Vars(r)["dni"]
 	course := mux.Vars(r)["course"]
 
 	query, err := utils.DB.Query("SELECT * FROM records WHERE student = ? AND course = ?", dni, course)
-
-	utils.ChkError(err)
+	if err != nil {
+		err = fmt.Errorf("Error executing query\n %q", err.Error())
+		utils.RespondWithError(w, http.StatusNotFound, err.Error())
+		return nil,err
+	}
 
 	var record models.Record
 
@@ -64,30 +85,54 @@ func getSingleRecord(w http.ResponseWriter, r *http.Request) *models.Record {
 		err = query.Scan(&record.Student, &record.Course, &record.Startdate, &record.Finishdate)
 		utils.ChkError(err)
 	}
-	return &record
+
+	if(record.Course == ""){
+		w.Header().Set("Content-Type", "application/json")
+    	w.WriteHeader(http.StatusNotFound)
+	}
+
+	return &record,nil
 }
 
-func updateRecord(w http.ResponseWriter, r *http.Request) int64 {
+func updateRecord(w http.ResponseWriter, r *http.Request) (int64, error) {
 	var s models.Record
 	err := json.NewDecoder(r.Body).Decode(&s)
 	utils.ChkError(err)
 
 	//prepare
 	stmt, err := utils.DB.Prepare("UPDATE records SET startdate = ?, finishdate = ? WHERE student = ? AND course=?")
-	utils.ChkError(err)
+	if err != nil {
+		err = fmt.Errorf("Error preparing query\n %q", err.Error())
+		utils.RespondWithError(w, http.StatusNotFound, err.Error())
+		return -1,err
+	}
 
 	//execute
 	result, err := stmt.Exec(s.Startdate, s.Finishdate, s.Student, s.Course)
-	utils.ChkError(err)
+	if err != nil {
+		err = fmt.Errorf("Error executing query\n %q", err.Error())
+		utils.RespondWithError(w, http.StatusNotFound, err.Error())
+		return -1,err
+	}
 
 	ro, err := result.RowsAffected()
 	utils.ChkError(err)
 
-	return ro
+	if(ro == 0){
+		w.Header().Set("Content-Type", "application/json")
+    	w.WriteHeader(http.StatusNotFound)
+	}
+
+	if ro == 1 {
+		w.Header().Set("Content-Type", "application/json")
+   		w.WriteHeader(http.StatusNoContent)
+	}
+
+	return ro,nil
 
 }
 
-func deleteRecord(w http.ResponseWriter, r *http.Request) int64 {
+func deleteRecord(w http.ResponseWriter, r *http.Request) (int64,error) {
 	var a models.Record
 	err := json.NewDecoder(r.Body).Decode(&a)
 	utils.ChkError(err)
@@ -95,37 +140,63 @@ func deleteRecord(w http.ResponseWriter, r *http.Request) int64 {
 	//prepare
 
 	stmt, err := utils.DB.Prepare("DELETE FROM records WHERE student = ? AND course =?")
-	utils.ChkError(err)
+	if err != nil {
+		err = fmt.Errorf("Error preparing query\n %q", err.Error())
+		utils.RespondWithError(w, http.StatusNotFound, err.Error())
+		return -1,err
+	}
 
 	//execute
 	result, err := stmt.Exec(a.Student, a.Course)
-	utils.ChkError(err)
+	if err != nil {
+		err = fmt.Errorf("Error executing query\n %q", err.Error())
+		utils.RespondWithError(w, http.StatusNotFound, err.Error())
+		return -1,err
+	}
 
 	ro, err := result.RowsAffected()
 	utils.ChkError(err)
 
-	return ro
+	if(ro == 0){
+		w.Header().Set("Content-Type", "application/json")
+    	w.WriteHeader(http.StatusNotFound)
+	}
+
+	if ro == 1 {
+		w.Header().Set("Content-Type", "application/json")
+   		w.WriteHeader(http.StatusNoContent)
+	}
+
+
+	return ro,nil
 }
 
 /////
 
 //CREATE
 func CreateRecordPage(w http.ResponseWriter, r *http.Request) {
+	id, err := createRecord(w, r)
+	
 	fmt.Fprintf(w, "Create Record Page!\n")
-	err := createRecord(w, r)
+	
 	if err != nil {
-		fmt.Fprintf(w, "Error creating record")
+		fmt.Fprintf(w,err.Error())
 	}
 	if err == nil {
-		fmt.Fprintf(w, "Record created")
+		fmt.Fprintf(w, "Record created with id: %d", id)
 	}
 
 }
 
 //READ
 func ReadRecordsPage(w http.ResponseWriter, r *http.Request) {
+	records,err := getRecords(w)
+	
 	fmt.Fprintf(w, "Records Page: \n")
-	records := getRecords()
+	
+	if err != nil {
+		fmt.Fprintf(w,err.Error())
+	}
 	if records == nil {
 		fmt.Fprintf(w, "No records found")
 	}
@@ -135,8 +206,13 @@ func ReadRecordsPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func ReadRecordPage(w http.ResponseWriter, r *http.Request) {
+	Record,err := getSingleRecord(w, r)
+	
 	fmt.Fprintf(w, "Single Record Page: \n")
-	Record := getSingleRecord(w, r)
+	
+	if err != nil {
+		fmt.Fprintf(w,err.Error())
+	}
 	if Record.Student != "" {
 		json.NewEncoder(w).Encode(*Record)
 	}
@@ -147,9 +223,13 @@ func ReadRecordPage(w http.ResponseWriter, r *http.Request) {
 
 //UPDATE
 func UpdateRecordPage(w http.ResponseWriter, r *http.Request) {
+	rowsAffected,err := updateRecord(w, r)
+	
 	fmt.Fprintf(w, "Update Record Page!\n")
 
-	rowsAffected := updateRecord(w, r)
+	if err != nil {
+		fmt.Fprintf(w,err.Error())
+	}
 	if rowsAffected > 0 {
 		fmt.Fprintf(w, "Record updated")
 	}
@@ -160,9 +240,13 @@ func UpdateRecordPage(w http.ResponseWriter, r *http.Request) {
 
 //DELETE
 func DeleteRecordPage(w http.ResponseWriter, r *http.Request) {
+	rowsAffected,err := deleteRecord(w, r)
+	
 	fmt.Fprintf(w, "Delete Record Page!\n")
 
-	rowsAffected := deleteRecord(w, r)
+	if err != nil {
+		fmt.Fprintf(w,err.Error())
+	}
 	if rowsAffected > 0 {
 		fmt.Fprintf(w, "Record deleted")
 	}

@@ -12,7 +12,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-func createAlumno(w http.ResponseWriter, r *http.Request) error {
+func createAlumno(w http.ResponseWriter, r *http.Request) (int64, error) {
 
 	var s models.Student
 	err := json.NewDecoder(r.Body).Decode(&s)
@@ -20,23 +20,36 @@ func createAlumno(w http.ResponseWriter, r *http.Request) error {
 
 
 	stmt, err := utils.DB.Prepare("INSERT INTO students (nombre, dni, direccion,fecha_nacimiento) VALUES (?,?,?,?)")
-	utils.ChkError(err)
+	if err != nil {
+		err = fmt.Errorf("Error preparing query\n %q", err.Error())
+		utils.RespondWithError(w, http.StatusNotFound, err.Error())
+		return -1,err
+	}
 
 	result, err := stmt.Exec(s.Nombre, s.Dni, s.Direccion, s.Fecha_nacimiento)
 	if err != nil {
-		return err
+		err = fmt.Errorf("Error executing query\n %q", err.Error())
+		utils.RespondWithError(w, http.StatusConflict, err.Error())
+		return -1,err
 	}
 
 	id, err := result.LastInsertId()
 	utils.ChkError(err)
-	fmt.Fprintf(w, "Student created with id: %d\n", id)
-	return nil
+
+	w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusCreated)
+
+	return id,nil
 }
 
-func getStudents() []*models.Student {
+func getStudents(w http.ResponseWriter) ([]*models.Student, error) {
 
 	rows, err := utils.DB.Query("SELECT * FROM students")
-	utils.ChkError(err)
+	if err != nil {
+		err = fmt.Errorf("Error executing query\n %q", err.Error())
+		utils.RespondWithError(w, http.StatusNotFound, err.Error())
+		return nil,err
+	}
 
 	var students []*models.Student
 
@@ -47,14 +60,23 @@ func getStudents() []*models.Student {
 		students = append(students, &student)
 	}
 
-	return students
+	if students == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+	}
+
+	return students,nil
 }
 
-func getSingleStudent(w http.ResponseWriter, r *http.Request) *models.Student {
+func getSingleStudent(w http.ResponseWriter, r *http.Request) (*models.Student, error) {
 	
 	dni := mux.Vars(r)["dni"]
 	query, err := utils.DB.Query("SELECT * FROM students WHERE dni = ?", dni)
-	utils.ChkError(err)
+	if err != nil {
+		err = fmt.Errorf("Error executing query\n %q", err.Error())
+		utils.RespondWithError(w, http.StatusNotFound, err.Error())
+		return nil,err
+	}
 
 	var s models.Student
 
@@ -62,67 +84,113 @@ func getSingleStudent(w http.ResponseWriter, r *http.Request) *models.Student {
 		err = query.Scan(&s.Nombre, &s.Dni, &s.Direccion, &s.Fecha_nacimiento)
 		utils.ChkError(err)
 	}
-	return &s
+
+	if(s.Dni == ""){
+		w.Header().Set("Content-Type", "application/json")
+    	w.WriteHeader(http.StatusNotFound)
+	}
+
+	return &s,nil
 }
 
-func updateStudent(w http.ResponseWriter, r *http.Request) int64 {
+func updateStudent(w http.ResponseWriter, r *http.Request) (int64,error) {
 	var s models.Student
 	err := json.NewDecoder(r.Body).Decode(&s)
 	utils.ChkError(err)
 
 	//prepare
 	stmt, err := utils.DB.Prepare("UPDATE students SET nombre = ?, dni = ?, direccion = ?, fecha_nacimiento = ? WHERE dni = ?")
-	utils.ChkError(err)
+	if err != nil {
+		err = fmt.Errorf("Error preparing query\n %q", err.Error())
+		utils.RespondWithError(w, http.StatusNotFound, err.Error())
+		return -1,err
+	}
 
 	//execute
 	result, err := stmt.Exec(s.Nombre, s.Dni, s.Direccion, s.Fecha_nacimiento, s.Dni)
-	utils.ChkError(err)
+	if err != nil {
+		err = fmt.Errorf("Error executing query\n %q", err.Error())
+		utils.RespondWithError(w, http.StatusNotFound, err.Error())
+		return -1,err
+	}
 
 	ro, err := result.RowsAffected()
 	utils.ChkError(err)
 
-	return ro
+	if(ro == 0){
+		w.Header().Set("Content-Type", "application/json")
+    	w.WriteHeader(http.StatusNotFound)
+	}
+
+	if ro == 1 {
+		w.Header().Set("Content-Type", "application/json")
+   		w.WriteHeader(http.StatusNoContent)
+	}
+
+	return ro,nil
 
 }
 
-func deleteStudent(w http.ResponseWriter, r *http.Request) int64 {
+func deleteStudent(w http.ResponseWriter, r *http.Request) (int64,error) {
 	var a models.Student
 	err := json.NewDecoder(r.Body).Decode(&a)
 	utils.ChkError(err)
 	
 	//prepare
 	stmt, err := utils.DB.Prepare("DELETE FROM students WHERE dni = ?")
-	utils.ChkError(err)
+	if err != nil {
+		err = fmt.Errorf("Error preparing query\n %q", err.Error())
+		utils.RespondWithError(w, http.StatusNotFound, err.Error())
+		return -1,err
+	}
 
 	//execute
 	result, err := stmt.Exec(a.Dni)
-	utils.ChkError(err)
+	if err != nil {
+		err = fmt.Errorf("Error executing query\n %q", err.Error())
+		utils.RespondWithError(w, http.StatusNotFound, err.Error())
+		return -1,err
+	}
 
 	ro, err := result.RowsAffected()
 	utils.ChkError(err)
 
-	return ro
+	if(ro == 0){
+		w.Header().Set("Content-Type", "application/json")
+    	w.WriteHeader(http.StatusNotFound)
+	}
+
+	if ro == 1 {
+		w.Header().Set("Content-Type", "application/json")
+   		w.WriteHeader(http.StatusNoContent)
+	}
+
+
+	return ro,nil
 }
 
 /////
 
 //CREATE
 func CreateStudentPage(w http.ResponseWriter, r *http.Request) {
+	id,err := createAlumno(w, r)
 	fmt.Fprintf(w, "Create Student Page!\n")
-	err := createAlumno(w, r)
 	if err != nil {
-		fmt.Fprintf(w, "Student not created")
+		fmt.Fprintf(w, err.Error())
 	}
 	if err == nil {
-		fmt.Fprintf(w, "Student created")
+		fmt.Fprintf(w, "Student created with id: %d\n", id)
 	}
 
 }
 
 //READ
 func ReadStudentsPage(w http.ResponseWriter, r *http.Request) {
+	students,err := getStudents(w)
 	fmt.Fprintf(w, "Students Page: \n")
-	students := getStudents()
+	if err != nil {
+		fmt.Fprintf(w, err.Error())
+	}
 	if students == nil {
 		fmt.Fprintf(w, "No students found")
 	}
@@ -132,8 +200,11 @@ func ReadStudentsPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func ReadStudentPage(w http.ResponseWriter, r *http.Request) {
+	student,err := getSingleStudent(w, r)
 	fmt.Fprintf(w, "Single Student Page: \n")
-	student := getSingleStudent(w, r)
+	if err != nil {
+		fmt.Fprintf(w, err.Error())
+	}
 	if student.Nombre != "" {
 		json.NewEncoder(w).Encode(*student)
 	}
@@ -144,9 +215,11 @@ func ReadStudentPage(w http.ResponseWriter, r *http.Request) {
 
 //UPDATE
 func UpdateStudentPage(w http.ResponseWriter, r *http.Request) {
+	rowsAffected,err := updateStudent(w, r)
 	fmt.Fprintf(w, "Update Student Page!\n")
-
-	rowsAffected := updateStudent(w, r)
+	if err != nil {
+		fmt.Fprintf(w, err.Error())
+	}
 	if rowsAffected > 0 {
 		fmt.Fprintf(w, "Student updated")
 	}
@@ -157,9 +230,11 @@ func UpdateStudentPage(w http.ResponseWriter, r *http.Request) {
 
 //DELETE
 func DeleteStudentPage(w http.ResponseWriter, r *http.Request) {
+	rowsAffected,err := deleteStudent(w, r)
 	fmt.Fprintf(w, "Delete Student Page!\n")
-
-	rowsAffected := deleteStudent(w, r)
+	if err != nil {
+		fmt.Fprintf(w, err.Error())
+	}
 	if rowsAffected > 0 {
 		fmt.Fprintf(w, "Student deleted")
 	}
