@@ -60,8 +60,8 @@ func getStudents(w http.ResponseWriter) ([]*models.Student, error) {
 		students = append(students, &student)
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	if students == nil {
-		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
 	}
 
@@ -85,8 +85,8 @@ func getSingleStudent(w http.ResponseWriter, r *http.Request) (*models.Student, 
 		utils.ChkError(err)
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	if(s.Dni == ""){
-		w.Header().Set("Content-Type", "application/json")
     	w.WriteHeader(http.StatusNotFound)
 	}
 
@@ -117,13 +117,12 @@ func updateStudent(w http.ResponseWriter, r *http.Request) (int64,error) {
 	ro, err := result.RowsAffected()
 	utils.ChkError(err)
 
+	w.Header().Set("Content-Type", "application/json")
 	if(ro == 0){
-		w.Header().Set("Content-Type", "application/json")
     	w.WriteHeader(http.StatusNotFound)
 	}
 
 	if ro == 1 {
-		w.Header().Set("Content-Type", "application/json")
    		w.WriteHeader(http.StatusNoContent)
 	}
 
@@ -154,14 +153,14 @@ func deleteStudent(w http.ResponseWriter, r *http.Request) (int64,error) {
 
 	ro, err := result.RowsAffected()
 	utils.ChkError(err)
+	
+	w.Header().Set("Content-Type", "application/json")
 
 	if(ro == 0){
-		w.Header().Set("Content-Type", "application/json")
     	w.WriteHeader(http.StatusNotFound)
 	}
 
 	if ro == 1 {
-		w.Header().Set("Content-Type", "application/json")
    		w.WriteHeader(http.StatusNoContent)
 	}
 

@@ -59,8 +59,8 @@ func getCourses(w http.ResponseWriter) ([]*models.Course,error) {
 		courses = append(courses, &course)
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	if(courses == nil){
-		w.Header().Set("Content-Type", "application/json")
     	w.WriteHeader(http.StatusNotFound)
 	}
 
@@ -85,8 +85,8 @@ func getSingleCourse(w http.ResponseWriter, r *http.Request) (*models.Course, er
 		utils.ChkError(err)
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	if s.Nombre == ""{
-		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
 	}
 	return &s,nil
@@ -116,13 +116,12 @@ func updateCourse(w http.ResponseWriter, r *http.Request) (int64,error) {
 	ro, err := result.RowsAffected()
 	utils.ChkError(err)
 
+	w.Header().Set("Content-Type", "application/json")
 	if(ro == 0){
-		w.Header().Set("Content-Type", "application/json")
     	w.WriteHeader(http.StatusNotFound)
 	}
 
 	if ro == 1 {
-		w.Header().Set("Content-Type", "application/json")
    		w.WriteHeader(http.StatusNoContent)
 	}
 
@@ -155,13 +154,12 @@ func deleteCourse(w http.ResponseWriter, r *http.Request) (int64,error) {
 	ro, err := result.RowsAffected()
 	utils.ChkError(err)
 
+	w.Header().Set("Content-Type", "application/json")
 	if(ro == 0){
-		w.Header().Set("Content-Type", "application/json")
     	w.WriteHeader(http.StatusNotFound)
 	}
 
 	if ro == 1 {
-		w.Header().Set("Content-Type", "application/json")
    		w.WriteHeader(http.StatusNoContent)
 	}
 

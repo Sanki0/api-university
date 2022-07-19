@@ -60,8 +60,8 @@ func getRecords(w http.ResponseWriter) ([]*models.Record, error) {
 		records = append(records, &record)
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	if(records == nil){
-		w.Header().Set("Content-Type", "application/json")
     	w.WriteHeader(http.StatusNotFound)
 	}
 
@@ -86,8 +86,8 @@ func getSingleRecord(w http.ResponseWriter, r *http.Request) (*models.Record, er
 		utils.ChkError(err)
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	if(record.Course == ""){
-		w.Header().Set("Content-Type", "application/json")
     	w.WriteHeader(http.StatusNotFound)
 	}
 
@@ -118,13 +118,12 @@ func updateRecord(w http.ResponseWriter, r *http.Request) (int64, error) {
 	ro, err := result.RowsAffected()
 	utils.ChkError(err)
 
+	w.Header().Set("Content-Type", "application/json")
 	if(ro == 0){
-		w.Header().Set("Content-Type", "application/json")
     	w.WriteHeader(http.StatusNotFound)
 	}
 
 	if ro == 1 {
-		w.Header().Set("Content-Type", "application/json")
    		w.WriteHeader(http.StatusNoContent)
 	}
 
@@ -157,13 +156,12 @@ func deleteRecord(w http.ResponseWriter, r *http.Request) (int64,error) {
 	ro, err := result.RowsAffected()
 	utils.ChkError(err)
 
+	w.Header().Set("Content-Type", "application/json")
 	if(ro == 0){
-		w.Header().Set("Content-Type", "application/json")
     	w.WriteHeader(http.StatusNotFound)
 	}
 
 	if ro == 1 {
-		w.Header().Set("Content-Type", "application/json")
    		w.WriteHeader(http.StatusNoContent)
 	}
 
