@@ -20,7 +20,7 @@ func (s *Student) GetStudent(db *sql.DB) error {
 
 func (s *Student)  UpdateStudent(db *sql.DB) error {
 	_, err :=
-	db.Exec("UPDATE products SET Nombre=?, Dni=?, Direccion=?, Fecha_nacimiento=? WHERE dni=?", 
+	db.Exec("UPDATE students SET Nombre=?, Dni=?, Direccion=?, Fecha_nacimiento=? WHERE dni=?", 
 				s.Nombre, s.Dni, s.Direccion, s.Fecha_nacimiento, s.Dni)
 
 	return err
@@ -33,8 +33,8 @@ func (s *Student)  DeleteStudent(db *sql.DB) error {
 }
 
 func (s *Student)  CreateStudent(db *sql.DB) error {
-	err := db.QueryRow("INSERT INTO students(Nombre, Dni, Direccion, Fecha_nacimiento) VALUES(?, ?, ?, ?) RETURNING dni", 
-						s.Nombre, s.Dni, s.Direccion, s.Fecha_nacimiento).Scan(&s.Dni)
+	_,err := db.Exec("INSERT INTO students(Nombre, Dni, Direccion, Fecha_nacimiento) VALUES(?, ?, ?, ?)", 
+						s.Nombre, s.Dni, s.Direccion, s.Fecha_nacimiento)
 
     if err != nil {
         return err

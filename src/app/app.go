@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
+
+	"github.com/Sanki0/api-university/src/models"
 	_ "github.com/go-sql-driver/mysql"
-    "github.com/Sanki0/api-university/src/models"
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
 )
@@ -25,6 +27,11 @@ func (a *App) Initialize() {
 		log.Fatal(err)
 	}
 
+    a.DB.SetMaxIdleConns(25)
+	a.DB.SetMaxOpenConns(25)
+	a.DB.SetConnMaxLifetime(5*time.Minute)
+	a.DB.SetConnMaxIdleTime(3*time.Minute)
+
 	a.Router = mux.NewRouter()  
 
 	a.initializeRoutes()
@@ -32,6 +39,7 @@ func (a *App) Initialize() {
 }
 
 func (a *App) Run(addr string) {
+    http.Handle("/", a.Router)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 

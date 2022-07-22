@@ -21,7 +21,7 @@ func TestMain(m *testing.M) {
 
 func TestGetNonExistentStudent(t *testing.T) {
 
-    req, _ := http.NewRequest("GET", "/student/1234140", nil)
+    req, _ := http.NewRequest("GET", "/student/11112222", nil)
 	rr := httptest.NewRecorder()
     a.Router.ServeHTTP(rr, req)
 	
