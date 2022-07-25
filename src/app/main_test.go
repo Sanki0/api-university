@@ -10,6 +10,7 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/Sanki0/api-university/src/models"
+	"github.com/gorilla/mux"
 )
 
 
@@ -20,42 +21,6 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-
-
-
-// func TestGetStudent(t *testing.T) {
-
-// 	db, mock, err := sqlmock.New()
-// 	if err != nil {
-// 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-// 	}
-// 	defer db.Close()
-
-// 	//create app with mocked db, request and response to test
-// 	app := &App{DB: db}
-// 	req, err := http.NewRequest("GET", "localhost:8080/student/12345678", nil)
-// 	if err != nil {
-// 		t.Fatalf("an error '%s' was not expected while creating request", err)
-// 	}
-// 	w := httptest.NewRecorder()
-
-// 	row := sqlmock.NewRows([]string{"nombre", "dni", "direccion","fecha_nacimiento"}).
-// 						AddRow("Juan", "12345678", "Calle falsa 123", "2020-01-01")
-// 	mock.ExpectQuery("SELECT (.+) FROM students WHERE id = ?").WithArgs("12345678").WillReturnRows(row)
-
-// 	app.GetStudent(w, req)
-
-// 	if w.Code != 200 {
-// 		t.Fatalf("expected status code to be 200, but got: %d", w.Code)
-// 	}
-
-// 	data := models.Student{Nombre: "Juan", Dni: "12345678", Direccion: "Calle falsa 123", Fecha_nacimiento: "2020-01-01"}
-
-// 	app.assertJSON(w.Body.Bytes(), data, t)
-// 	if err := mock.ExpectationsWereMet(); err != nil {
-// 		t.Errorf("there were unfulfilled expectations: %s", err)
-// 	}
-// }
 
 func TestCreateStudent(t *testing.T) {
 
@@ -201,143 +166,142 @@ func TestGetStudentsFail(t *testing.T) {
 
 }
 
+func TestGetStudent(t * testing.T){
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
 
+	app := &App{DB: db}
+	req, err := http.NewRequest("GET", "localhost:8080/student/12345678", nil)
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected while creating request", err)
+	}
+	w := httptest.NewRecorder()
 
+	rows := sqlmock.NewRows([]string{"nombre", "dni", "direccion","fecha_nacimiento"}).
+		AddRow("Juan", "12345678", "Calle falsa 123", "2020-01-01")
 
-//  func TestCreateStudent(t *testing.T) {
+	mock.ExpectQuery("SELECT (.+) FROM students WHERE dni=?").WithArgs("12345678").WillReturnRows(rows)
 
-//      var jsonStr = []byte(`{
-//          "Nombre": "cesar",
-//          "Dni": "11112222",
-//          "Direccion": "Jockey",
-//          "Fecha_nacimiento": "2001-09-18"
-//        } `)
-//      req, _ := http.NewRequest("POST", "/student", bytes.NewBuffer(jsonStr))
-//      req.Header.Set("Content-Type", "application/json")
+	vars := map[string]string{
+		"dni": "12345678",
+	}
 
-//      rr := httptest.NewRecorder()
-//      a.Router.ServeHTTP(rr, req)
+	req = mux.SetURLVars(req, vars)
+
+	app.GetStudent(w, req)
+
+	if w.Code != 200 {
+		t.Fatalf("expected status code to be 200, but got: %d", w.Code)
+	}
+
+	data := models.Student{Nombre: "Juan", Dni: "12345678", Direccion: "Calle falsa 123", Fecha_nacimiento: "2020-01-01"}
+
+	app.assertJSON(w.Body.Bytes(), data, t)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+func TestUpdateStudent (t *testing.T){
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	app := &App{DB: db}
+	req, err := http.NewRequest("PUT", "localhost:8080/student", bytes.NewBuffer([]byte(`{"nombre": "Jose", "Dni": "12345678", "Direccion": "Calle falsa 123", "Fecha_nacimiento": "2020-01-01"}`)))
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected while creating request", err)
+	}
+	w := httptest.NewRecorder()
+
+	mock.ExpectExec("UPDATE students").
+				WithArgs("Jose", "12345678", "Calle falsa 123", "2020-01-01", "12345678").
+				WillReturnResult(sqlmock.NewResult(1, 1))
 	
-//  	expected := http.StatusCreated
-//  	actual := rr.Code
+	app.UpdateStudent(w, req)
 
-//  	if expected != actual {
-//          t.Errorf("Expected response code %d. Got %d\n", expected, actual)
-//      }
-
-//      var m map[string]interface{}
-//      json.Unmarshal(rr.Body.Bytes(), &m)
-
-//      if m["nombre"] != "test" {
-//          t.Errorf("Expected student name to be 'test'. Got '%v'", m["nombre"])
-//      }
-
-//  	if m["dni"] != "12345678" {
-//  		t.Errorf("Expected student dni to be '12345678'. Got '%v'", m["dni"])
-//  	}
-//  	if m["direccion"] != "test" {
-//  		t.Errorf("Expected student direccion to be 'test'. Got '%v'", m["direccion"])
-//  	}
-//  	if m["fecha_nacimiento"] != "test" {
-//  		t.Errorf("Expected student fecha_nacimiento to be 'test'. Got '%v'", m["fecha_nacimiento"])
-//  	}
-//  }
-
-
-//  func TestGetStudent(t *testing.T) {
-
-//      req, _ := http.NewRequest("GET", "/product", nil)
-//  	rr := httptest.NewRecorder()
-//      a.Router.ServeHTTP(rr, req)
+	if w.Code != 200 {
+		t.Fatalf("expected status code to be 200, but got: %d", w.Code)
+	}
 	
-//  	expected := http.StatusOK
-//  	actual := rr.Code
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
 
-//  	if expected != actual {
-//          t.Errorf("Expected response code %d. Got %d\n", expected, actual)
-//      }
+}
 
+// func TestUpdateStudentFail(t *testing.T){
+// 	db, mock, err := sqlmock.New()
+// 	if err != nil {
+// 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+// 	}
+// 	defer db.Close()
 
-//  }
+// 	app := &App{DB: db}
 
+// 	req, err := http.NewRequest("PUT", "localhost:8080/student", bytes.NewBuffer([]byte(`{"nombre": "Jose", "Dni": "12345678", "Direccion": "Calle falsa 123", "Fecha_nacimiento": "2020-01-01"}`)))
 
+// 	if err != nil {
+// 		t.Fatalf("an error '%s' was not expected while creating request", err)
+// 	}
+// 	w := httptest.NewRecorder()
 
+// 	mock.ExpectExec("UPDATE students").
+// 				WithArgs("Jose", "12345678", "Calle falsa 123", "2020-01-01", "12345678").
+// 				WillReturnError(err)
+	
+// 	app.UpdateStudent(w, req)
 
-//  func TestUpdateProduct(t *testing.T) {
+// 	if w.Code != 404 {
+// 		t.Fatalf("expected status code to be 404, but got: %d", w.Code)
+// 	}
 
-//      req, _ := http.NewRequest("GET", "/product/12345678", nil)
-//      rr := httptest.NewRecorder()
-//      a.Router.ServeHTTP(rr, req)
+// 	if err := mock.ExpectationsWereMet(); err != nil {
+// 		t.Errorf("there were unfulfilled expectations: %s", err)
+// 	}
 
-//      var originalStudent map[string]interface{}
-//      json.Unmarshal(rr.Body.Bytes(), &originalStudent)
-
-//      var jsonStr = []byte(`{"nombre":"test-updated", "dni":"12345678", "direccion":"test updated", "fecha_nacimiento":"test updated"}`)
-//      req, _ = http.NewRequest("PUT", "/product/1", bytes.NewBuffer(jsonStr))
-//      req.Header.Set("Content-Type", "application/json")
-
-//      rr = httptest.NewRecorder()
-//      a.Router.ServeHTTP(rr, req)
-
-//  	expected := http.StatusOK
-//  	actual := rr.Code
-
-//  	if expected != actual {
-//          t.Errorf("Expected response code %d. Got %d\n", expected, actual)
-//      }
-//      var m map[string]interface{}
-//      json.Unmarshal(rr.Body.Bytes(), &m)
-
-//      if m["dni"] != originalStudent["dni"] {
-//          t.Errorf("Expected the dni to remain the same (%v). Got %v", originalStudent["dni"], m["dni"])
-//      }
-//      if m["nombre"] == originalStudent["nombre"] {
-//          t.Errorf("Expected the name to change from '%v' to '%v'. Got '%v'", originalStudent["name"], m["name"], m["name"])
-//      }
-//      if m["direccion"] == originalStudent["direccion"] {
-//  		t.Errorf("Expected the direccion to change from '%v' to '%v'. Got '%v'", originalStudent["direccion"], m["direccion"], m["direccion"])
-//  	}
-//  	if m["fecha_nacimiento"] == originalStudent["fecha_nacimiento"] {
-//  		t.Errorf("Expected the fecha_nacimiento to change from '%v' to '%v'. Got '%v'", originalStudent["fecha_nacimiento"], m["fecha_nacimiento"], m["fecha_nacimiento"])
-//  	}
-
-//  }
+// }
 
 
-//  func TestDeleteProduct(t *testing.T) {
-//      req, _ := http.NewRequest("GET", "/product/12345678", nil)
-//      rr := httptest.NewRecorder()
-//      a.Router.ServeHTTP(rr, req)
 
-//  	expected := http.StatusOK
-//  	actual := rr.Code
 
-//  	if expected != actual {
-//          t.Errorf("Expected response code %d. Got %d\n", expected, actual)
-//      }
+func TestDeleteStudent(t *testing.T){
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
 
-//      req, _ = http.NewRequest("DELETE", "/product/12345678", nil)
-//      rr = httptest.NewRecorder()
-//      a.Router.ServeHTTP(rr, req)
+	app := &App{DB: db}
+	req, err := http.NewRequest("DELETE", "localhost:8080/student/12345678", nil)
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected while creating request", err)
+	}
+	w := httptest.NewRecorder()
 
-//  	expected = http.StatusOK
-//  	actual = rr.Code
+	vars := map[string]string{
+        "dni": "12345678",
+    }
 
-//  	if expected != actual {
-//          t.Errorf("Expected response code %d. Got %d\n", expected, actual)
-//      }
+	req = mux.SetURLVars(req, vars)
 
-//      req, _ = http.NewRequest("GET", "/product/12345678", nil)
-//  	rr = httptest.NewRecorder()
-//      a.Router.ServeHTTP(rr, req)
+	mock.ExpectExec("DELETE FROM students").WithArgs("12345678").WillReturnResult(sqlmock.NewResult(1, 1))
 
-//  	expected = http.StatusNotFound
-//  	actual = rr.Code
+	app.DeleteStudent(w, req)
 
-//  	if expected != actual {
-//          t.Errorf("Expected response code %d. Got %d\n", expected, actual)
-//      }
-//  }
+	if w.Code != 200 {
+		t.Fatalf("expected status code to be 200, but got: %d", w.Code)
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
 
 
 func (a *App) assertJSON(actual []byte, data interface{}, t *testing.T) {
