@@ -49,7 +49,7 @@ func (a *App) Run(addr string) {
 
 //STUDENTS ROUTES
 
-func (a *App) createStudent(w http.ResponseWriter, r *http.Request) {
+func (a *App) CreateStudent(w http.ResponseWriter, r *http.Request) {
 	var s models.Student
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&s); err != nil {
@@ -66,7 +66,7 @@ func (a *App) createStudent(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusCreated, s)
 }
 
-func (a *App) getStudent(w http.ResponseWriter, r *http.Request) {
+func (a *App) GetStudent(w http.ResponseWriter, r *http.Request) {
     dni := mux.Vars(r)["dni"]
 
     s := models.Student{Dni: dni}
@@ -83,7 +83,7 @@ func (a *App) getStudent(w http.ResponseWriter, r *http.Request) {
     respondWithJSON(w, http.StatusOK, s)
 }
 
-func (a *App) getStudents(w http.ResponseWriter, r *http.Request) {
+func (a *App) GetStudents(w http.ResponseWriter, r *http.Request) {
 
     students, err :=  models.GetStudentsU(a.DB)
     if err != nil {
@@ -130,9 +130,9 @@ func (a *App) deleteStudent(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) initializeRoutes() {
-    a.Router.HandleFunc("/student", a.createStudent).Methods("POST")
-    a.Router.HandleFunc("/student", a.getStudents).Methods("GET")
-    a.Router.HandleFunc("/student/{dni}", a.getStudent).Methods("GET")
+    a.Router.HandleFunc("/student", a.CreateStudent).Methods("POST")
+    a.Router.HandleFunc("/student", a.GetStudents).Methods("GET")
+    a.Router.HandleFunc("/student/{dni}", a.GetStudent).Methods("GET")
     a.Router.HandleFunc("/student/{dni}", a.updateStudent).Methods("PUT")
     a.Router.HandleFunc("/student/{dni}", a.deleteStudent).Methods("DELETE")
 }
