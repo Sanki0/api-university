@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -12,14 +11,6 @@ import (
 	"github.com/Sanki0/api-university/src/models"
 	"github.com/gorilla/mux"
 )
-
-
-func TestMain(m *testing.M) {
-    var application App
-    application.Initialize()
-	code := m.Run()
-	os.Exit(code)
-}
 
 
 func TestCreateStudent(t *testing.T) {
@@ -54,7 +45,7 @@ func TestCreateStudent(t *testing.T) {
 }
 
 ///NO SE SI ESTA CORRECTAMENTE TESTEADO EL CREATE FAIL
-func TestCreateStudentFail(t *testing.T) {
+func TestCreateStudentFailServerError(t *testing.T) {
 	
 	db, mock, err := sqlmock.New()
 	if err != nil {
@@ -78,6 +69,34 @@ func TestCreateStudentFail(t *testing.T) {
 
 	if w.Code != 500 {
 		t.Fatalf("expected status code to be 500, but got: %d", w.Code)
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+
+}
+//agregar test para otros archivos
+func TestCreateStudentFailPayload(t *testing.T) {
+	
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	app := &App{DB: db}
+	req, err := http.NewRequest("POST", "localhost:8080/student", bytes.NewBuffer([]byte(``)))
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected while creating request", err)
+	}
+	w := httptest.NewRecorder()
+
+
+	app.CreateStudent(w, req)
+
+	if w.Code != 400 {
+		t.Fatalf("expected status code to be 400, but got: %d", w.Code)
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {
@@ -134,7 +153,7 @@ func TestGetStudents(t *testing.T) {
 }
 
 
-func TestGetStudentsFail(t *testing.T) {
+func TestGetStudentsFailServerError(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
@@ -165,6 +184,8 @@ func TestGetStudentsFail(t *testing.T) {
 	}
 
 }
+
+
 
 func TestGetStudent(t * testing.T){
 	db, mock, err := sqlmock.New()
@@ -205,6 +226,75 @@ func TestGetStudent(t * testing.T){
 		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
+
+//agregar test otros archivos
+func TestGetStudentFailNotFound(t * testing.T){
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	app := &App{DB: db}
+	req, err := http.NewRequest("GET", "localhost:8080/student", nil)
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected while creating request", err)
+	}
+	w := httptest.NewRecorder()
+
+	rows := sqlmock.NewRows([]string{"nombre", "dni", "direccion","fecha_nacimiento"})
+
+	mock.ExpectQuery("SELECT (.+) FROM students WHERE dni=?").WithArgs("12345678").WillReturnRows(rows)
+
+	vars := map[string]string{
+		"dni": "12345678",
+	}
+
+	req = mux.SetURLVars(req, vars)
+
+	app.GetStudent(w, req)
+
+	if w.Code != 404 {
+		t.Fatalf("expected status code to be 404, but got: %d", w.Code)
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestGetStudentFailServerError(t * testing.T){
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	app := &App{DB: db}
+	req, err := http.NewRequest("GET", "localhost:8080/student", nil)
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected while creating request", err)
+	}
+	w := httptest.NewRecorder()
+
+	mock.ExpectQuery("SELECT (.+) FROM students WHERE dni=?").WithArgs("12345678").WillReturnError(err)
+
+	vars := map[string]string{
+		"dni": "12345678",
+	}
+
+	req = mux.SetURLVars(req, vars)
+
+	app.GetStudent(w, req)
+
+	if w.Code != 500 {
+		t.Fatalf("expected status code to be 500, but got: %d", w.Code)
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
 func TestUpdateStudent (t *testing.T){
 	db, mock, err := sqlmock.New()
 	if err != nil {
@@ -235,37 +325,62 @@ func TestUpdateStudent (t *testing.T){
 
 }
 
-// func TestUpdateStudentFail(t *testing.T){
-// 	db, mock, err := sqlmock.New()
-// 	if err != nil {
-// 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-// 	}
-// 	defer db.Close()
+func TestUpdateStudentFailPayload (t *testing.T){
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
 
-// 	app := &App{DB: db}
+	app := &App{DB: db}
+	req, err := http.NewRequest("PUT", "localhost:8080/student", bytes.NewBuffer([]byte(``)))
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected while creating request", err)
+	}
+	w := httptest.NewRecorder()
 
-// 	req, err := http.NewRequest("PUT", "localhost:8080/student", bytes.NewBuffer([]byte(`{"nombre": "Jose", "Dni": "12345678", "Direccion": "Calle falsa 123", "Fecha_nacimiento": "2020-01-01"}`)))
-
-// 	if err != nil {
-// 		t.Fatalf("an error '%s' was not expected while creating request", err)
-// 	}
-// 	w := httptest.NewRecorder()
-
-// 	mock.ExpectExec("UPDATE students").
-// 				WithArgs("Jose", "12345678", "Calle falsa 123", "2020-01-01", "12345678").
-// 				WillReturnError(err)
 	
-// 	app.UpdateStudent(w, req)
+	app.UpdateStudent(w, req)
 
-// 	if w.Code != 404 {
-// 		t.Fatalf("expected status code to be 404, but got: %d", w.Code)
-// 	}
+	if w.Code != 400 {
+		t.Fatalf("expected status code to be 200, but got: %d", w.Code)
+	}
+	
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
 
-// 	if err := mock.ExpectationsWereMet(); err != nil {
-// 		t.Errorf("there were unfulfilled expectations: %s", err)
-// 	}
+}
 
-// }
+func TestUpdateStudentFailServerError (t *testing.T){
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	app := &App{DB: db}
+	req, err := http.NewRequest("PUT", "localhost:8080/student", bytes.NewBuffer([]byte(`{"nombre": "Jose", "Dni": "12345678", "Direccion": "Calle falsa 123", "Fecha_nacimiento": "2020-01-01"}`)))
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected while creating request", err)
+	}
+	w := httptest.NewRecorder()
+
+	mock.ExpectExec("UPDATE students").
+				WithArgs("Jose", "12345678", "Calle falsa 123", "2020-01-01", "12345678").
+				WillReturnError(err)
+
+	app.UpdateStudent(w, req)
+
+	if w.Code != 500 {
+		t.Fatalf("expected status code to be 500, but got: %d", w.Code)
+	}
+	
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+
+}
 
 
 func TestDeleteStudent(t *testing.T){
@@ -294,6 +409,39 @@ func TestDeleteStudent(t *testing.T){
 
 	if w.Code != 200 {
 		t.Fatalf("expected status code to be 200, but got: %d", w.Code)
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestDeleteStudentFail(t *testing.T){
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	app := &App{DB: db}
+	req, err := http.NewRequest("DELETE", "localhost:8080/student/12345678", nil)
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected while creating request", err)
+	}
+	w := httptest.NewRecorder()
+
+	vars := map[string]string{
+        "dni": "12345678",
+    }
+
+	req = mux.SetURLVars(req, vars)
+
+	mock.ExpectExec("DELETE FROM students").WithArgs("12345678").WillReturnError(err)
+
+	app.DeleteStudent(w, req)
+
+	if w.Code != 500 {
+		t.Fatalf("expected status code to be 500, but got: %d", w.Code)
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {

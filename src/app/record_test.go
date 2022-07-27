@@ -45,8 +45,36 @@ func TestCreateRecord(t *testing.T) {
 
 }
 
+func TestCreateRecordFailPayload(t *testing.T) {
+	
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	app := &App{DB: db}
+	req, err := http.NewRequest("POST", "localhost:8080/record", 
+					bytes.NewBuffer([]byte(``)))
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected while creating request", err)
+	}
+	w := httptest.NewRecorder()
+
+	app.CreateRecord(w, req)
+
+	if w.Code != 400 {
+		t.Fatalf("expected status code to be 400, but got: %d", w.Code)
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+
+}
+
 ///NO SE SI ESTA CORRECTAMENTE TESTEADO EL CREATE FAIL
-func TestCreateRecordFail(t *testing.T) {
+func TestCreateRecordFailServerError(t *testing.T) {
 	
 	db, mock, err := sqlmock.New()
 	if err != nil {
@@ -126,7 +154,7 @@ func TestGetRecords(t *testing.T) {
 }
 
 
-func TestGetRecordsFail(t *testing.T) {
+func TestGetRecordsFailServerError(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
@@ -200,6 +228,80 @@ func TestGetRecord(t * testing.T){
 		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
+
+func TestGetRecordFailNotFound(t * testing.T){
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	app := &App{DB: db}
+	req, err := http.NewRequest("GET", "localhost:8080/record", nil)
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected while creating request", err)
+	}
+	w := httptest.NewRecorder()
+
+	rows := sqlmock.NewRows([]string{"student", "course", "startdate", "finishdate"})
+
+	mock.ExpectQuery ("SELECT (.+) FROM records WHERE student = ?").
+		WithArgs("12453124", "PHP").
+		WillReturnRows(rows)
+
+	vars := map[string]string{
+		"student": "12453124",
+		"course": "PHP",
+	}
+
+	req = mux.SetURLVars(req, vars)
+
+	app.GetRecord(w, req)
+
+	if w.Code != 404 {
+		t.Fatalf("expected status code to be 404, but got: %d", w.Code)
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestGetRecordFailServerError(t * testing.T){
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	app := &App{DB: db}
+	req, err := http.NewRequest("GET", "localhost:8080/record", nil)
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected while creating request", err)
+	}
+	w := httptest.NewRecorder()
+
+	mock.ExpectQuery ("SELECT (.+) FROM records WHERE student = ?").
+		WithArgs("12453124", "PHP").
+		WillReturnError(err)
+
+	vars := map[string]string{
+		"student": "12453124",
+		"course": "PHP",
+	}
+
+	req = mux.SetURLVars(req, vars)
+
+	app.GetRecord(w, req)
+
+	if w.Code != 500 {
+		t.Fatalf("expected status code to be 500, but got: %d", w.Code)
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
 func TestUpdateRecord (t *testing.T){
 	db, mock, err := sqlmock.New()
 	if err != nil {
@@ -223,6 +325,65 @@ func TestUpdateRecord (t *testing.T){
 
 	if w.Code != 200 {
 		t.Fatalf("expected status code to be 200, but got: %d", w.Code)
+	}
+	
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+
+}
+
+func TestUpdateRecordFailPayload (t *testing.T){
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	app := &App{DB: db}
+	req, err := http.NewRequest("PUT", "localhost:8080/record", 
+					bytes.NewBuffer([]byte(``)))
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected while creating request", err)
+	}
+	w := httptest.NewRecorder()
+
+	app.UpdateRecord(w, req)
+
+	if w.Code != 400 {
+		t.Fatalf("expected status code to be 400, but got: %d", w.Code)
+	}
+	
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+
+}
+
+func TestUpdateRecordFailServerError (t *testing.T){
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	app := &App{DB: db}
+	req, err := http.NewRequest("PUT", "localhost:8080/record", 
+					bytes.NewBuffer([]byte(`{"student": "12453124", "course": "PHP", "startdate": "2022-09-01", "finishdate": "2022-12-01"}`)))
+	
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected while creating request", err)
+	}
+	w := httptest.NewRecorder()
+
+	mock.ExpectExec("UPDATE records").
+				WithArgs("12453124", "PHP", "2022-09-01", "2022-12-01", "12453124", "PHP").
+				WillReturnError(err)
+
+	app.UpdateRecord(w, req)
+
+	if w.Code != 500 {
+		t.Fatalf("expected status code to be 500, but got: %d", w.Code)
 	}
 	
 	if err := mock.ExpectationsWereMet(); err != nil {
@@ -259,6 +420,40 @@ func TestDeleteRecord(t *testing.T){
 
 	if w.Code != 200 {
 		t.Fatalf("expected status code to be 200, but got: %d", w.Code)
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestDeleteRecordFailServerError(t *testing.T){
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	app := &App{DB: db}
+	req, err := http.NewRequest("DELETE", "localhost:8080/record/12453124/PHP", nil)
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected while creating request", err)
+	}
+	w := httptest.NewRecorder()
+
+	vars := map[string]string{
+        "student": "12453124",
+		"course": "PHP",
+    }
+
+	req = mux.SetURLVars(req, vars)
+
+	mock.ExpectExec("DELETE FROM records").WithArgs("12453124","PHP").WillReturnError(err)
+
+	app.DeleteRecord(w, req)
+
+	if w.Code != 500 {
+		t.Fatalf("expected status code to be 500, but got: %d", w.Code)
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {
