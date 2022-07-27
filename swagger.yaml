@@ -1,0 +1,423 @@
+swagger: "2.0"
+info:
+  description: En este proyecto se presentan 3 API - Student (Estudiantes), Course(Cursos) y Records(Matriculas)
+  version: "1.0.0"
+  title: "API UNIVERSITY"
+host: "localhost:8080"
+basePath: "/"
+tags:
+- name: "student"
+  description: "Student API"
+- name: "course"
+  description: "Course API"
+- name: "record"
+  description: "Record API"
+schemes:
+- "https"
+paths:
+  /student:
+    post:
+      tags:
+      - "student"
+      summary: "Add a new student"
+      description: ""
+      operationId: "addStudent"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Student object to be added"
+        required: true
+        schema:
+          $ref: "#/definitions/student"
+      responses:
+        "400":
+          description: "Invalid input"
+        "201":
+          description: "Student created"
+          schema:
+            $ref: "#/definitions/course"
+        "500":
+          description: "Internal server error"
+
+    put:
+      tags:
+      - "student"
+      summary: "Update an existing student"
+      description: ""
+      operationId: "updateStudent"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Student object that needs to be added to the store"
+        required: true
+        schema:
+          $ref: "#/definitions/student"
+      responses:
+        "400":
+          description: "Invalid input"
+        "500":
+          description: "Internal server error"
+        "200":
+          description: "Success"
+          schema:
+            $ref: "#/definitions/course"
+            
+          
+    get:
+      tags:
+      - "student"
+      summary: "Get all students"
+      description: ""
+      operationId: "getAllStudents"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      
+      responses:
+        "500":
+          description: "Internal server error"
+        "200":
+          description: "Success"
+      
+
+  /student/{dni}:
+    get:
+      tags:
+      - "student"
+      summary: "Find student by DNI"
+      description: "Returns a single student"
+      operationId: "getStudentByDni"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "dni"
+        in: "path"
+        description: "DNI of student to return"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "success"
+          schema:
+            $ref: "#/definitions/student"
+        "404":
+          description: "Student not found"
+  
+    delete:
+      tags:
+      - "student"
+      summary: "Delete student by DNI"
+      description: ""
+      operationId: "deleteStudentByDni"
+      parameters:
+      - name: "dni"
+        in: "path"
+        description: "DNI of student to delete"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "success"
+        "500":
+          description: "Internal Server error"
+
+  /course:
+    post:
+      tags:
+      - "course"
+      summary: "Add a new course"
+      description: ""
+      operationId: "addCourse"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Course object to be added"
+        required: true
+        schema:
+          $ref: "#/definitions/course"
+      responses:
+        "400":
+          description: "Invalid input"
+        "201":
+          description: "Course created"
+          schema:
+            $ref: "#/definitions/course"
+        "500":
+          description: "Internal server error"
+
+    put:
+      tags:
+      - "course"
+      summary: "Update an existing course"
+      description: ""
+      operationId: "updateCourse"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Course object that needs to be added to the store"
+        required: true
+        schema:
+          $ref: "#/definitions/course"
+      responses:
+        "400":
+          description: "Invalid input"
+        "500":
+          description: "Internal server error"
+        "200":
+          description: "Success"
+          schema:
+            $ref: "#/definitions/course"
+          
+    get:
+      tags:
+      - "course"
+      summary: "Get all courses"
+      description: ""
+      operationId: "getAllCourses"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      
+      responses:
+        "500":
+          description: "Internal server error"
+        "200":
+          description: "Success"
+      
+
+  /course/{nombre}:
+    get:
+      tags:
+      - "course"
+      summary: "Find course by name"
+      description: "Returns a single course"
+      operationId: "getCourseByName"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "nombre"
+        in: "path"
+        description: "Name of course to return"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "success"
+          schema:
+            $ref: "#/definitions/course"
+        "404":
+          description: "Course not found"
+  
+    delete:
+      tags:
+      - "course"
+      summary: "Delete course by name"
+      description: ""
+      operationId: "deleteCourseByName"
+      parameters:
+      - name: "nombre"
+        in: "path"
+        description: "name of course to delete"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "success"
+        "500":
+          description: "Internal Server error"
+          
+  /record:
+    post:
+      tags:
+      - "record"
+      summary: "Add a new record"
+      description: ""
+      operationId: "addRecord"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Record object to be added"
+        required: true
+        schema:
+          $ref: "#/definitions/record"
+      responses:
+        "400":
+          description: "Invalid input"
+        "201":
+          description: "Record created"
+          schema:
+            $ref: "#/definitions/course"
+        "500":
+          description: "Internal server error"
+
+    put:
+      tags:
+      - "record"
+      summary: "Update an existing record"
+      description: ""
+      operationId: "updateRecord"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Record object that needs to be added to the store"
+        required: true
+        schema:
+          $ref: "#/definitions/record"
+      responses:
+        "400":
+          description: "Invalid input"
+        "500":
+          description: "Internal server error"
+        "200":
+          description: "Success"
+          schema:
+            $ref: "#/definitions/course"
+          
+    get:
+      tags:
+      - "record"
+      summary: "Get all records"
+      description: ""
+      operationId: "getAllRecords"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      
+      responses:
+        "500":
+          description: "Internal server error"
+        "200":
+          description: "Success"
+      
+
+  /record/{student}/{course}:
+    get:
+      tags:
+      - "record"
+      summary: "Find record by name"
+      description: "Returns a single record"
+      operationId: "getRecord"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "student"
+        in: "path"
+        description: "DNI of student"
+        required: true
+        type: "string"
+      - name: "course"
+        in: "path"
+        description: "Name of course"
+        required: true
+        type: "string"
+        
+      responses:
+        "200":
+          description: "success"
+          schema:
+            $ref: "#/definitions/record"
+        "404":
+          description: "Course not found"
+  
+    delete:
+      tags:
+      - "record"
+      summary: "Delete record by name"
+      description: ""
+      operationId: "deleteRecord"
+      parameters:
+      - name: "student"
+        in: "path"
+        description: "DNI of student"
+        required: true
+        type: "string"
+      - name: "course"
+        in: "path"
+        description: "Name of course"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "success"
+
+        "500":
+          description: "Internal Server error"
+
+
+definitions:
+  student:
+    type: "object"
+    required:
+    - "Dni"
+    properties:
+      Nombre:
+        type: "string"
+        example: "cesar"
+      Dni:
+        type: "string"
+        example: "1234567"
+      Direccion:
+        type: "string"
+        example: "Jockey"
+      Fecha_nacimiento:
+        type: "string"
+        example: "2001-09-18"
+  course:
+    type: "object"
+    required:
+    - "Nombre"
+    properties:
+      Nombre:
+        type: "string"
+        example: "Devmente"
+      Descripcion:
+        type: "string"
+        example: "Introduccion"
+      Tema:
+        type: "string"
+        example: "Go"
+  record:
+    type: "object"
+    required:
+    - "Student"
+    - "Course"
+    properties:
+      Student:
+        type: "string"
+        example: "12453124"
+      Course:
+        type: "string"
+        example: "PHP"
+      Startdate:
+        type: "string"
+        example: "2022-09-01"
+      Finishtdate:
+        type: "string"
+        example: "2022-12-01"
