@@ -1,0 +1,44 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+
+type Student{
+    nombre: String,
+    dni: String!,
+    direccion: String,
+    fecha_nacimiento: String,
+}
+
+type Course{
+    nombre: String!,
+    descripcion: String,
+    temas: String,
+}
+
+type Record{
+    student: String!,
+    course: String!,
+    startdate: String,
+    finishdate: String,
+}
+
+type Query{
+    getStudents: [Student],
+    getCourses: [Course],
+    getRecords: [Record],
+    getStudent(dni: String!): Student,
+    getCourse(nombre: String!): Course,
+    getRecord(student: String!, course: String!): Record,
+}
+
+type Mutation{
+    createStudent(nombre: String, dni: String!, direccion: String, fecha_nacimiento: String): Student,
+    createCourse(nombre: String!, descripcion: String, temas: String): Course,
+    createRecord(student: String!, course: String!, startdate: String, finishdate: String): Record,
+    updateStudent(nombre: String, dni: String!, direccion: String, fecha_nacimiento: String): Student,
+    updateCourse(nombre: String!, descripcion: String, temas: String): Course,
+    updateRecord(student: String!, course: String!, startdate: String, finishdate: String): Record,
+    deleteStudent(dni: String!): Student,
+    deleteCourse(nombre: String!): Course,
+    deleteRecord(student: String!, course: String!): Record,
+}
