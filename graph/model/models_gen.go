@@ -3,21 +3,23 @@
 package model
 
 type Course struct {
-	Nombre      string  `json:"nombre"`
+	IDCourses   string  `json:"id_courses"`
+	Nombre      *string `json:"nombre"`
 	Descripcion *string `json:"descripcion"`
 	Temas       *string `json:"temas"`
 }
 
 type Record struct {
-	Student    string  `json:"student"`
-	Course     string  `json:"course"`
-	Startdate  *string `json:"startdate"`
-	Finishdate *string `json:"finishdate"`
+	IDRecords  string   `json:"id_records"`
+	Student    *Student `json:"student"`
+	Course     *Course  `json:"course"`
+	Startdate  *string  `json:"startdate"`
+	Finishdate *string  `json:"finishdate"`
 }
 
 type Student struct {
-	Nombre          *string `json:"nombre"`
 	Dni             string  `json:"dni"`
+	Nombre          *string `json:"nombre"`
 	Direccion       *string `json:"direccion"`
 	FechaNacimiento *string `json:"fecha_nacimiento"`
 }
