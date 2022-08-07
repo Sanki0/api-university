@@ -33,8 +33,10 @@ func (r *mutationResolver) CreateCourse(ctx context.Context, idCourses string, n
 // CreateRecord is the resolver for the createRecord field.
 func (r *mutationResolver) CreateRecord(ctx context.Context, idRecords string, student string, course string, startdate *string, finishdate *string) (*model.Record, error) {
 
+	temp := model.Student{Dni: student}
+
 	// record := model.Record{Student: student, Course: course, Startdate: startdate, Finishdate: finishdate}
-	record := model.Record{IDRecords: idRecords, Student: &model.Student{Dni: student}, Course: &model.Course{IDCourses: course}, Startdate: startdate, Finishdate: finishdate}
+	record := model.Record{IDRecords: idRecords, Student: &model.Student{Dni: temp.Dni, Nombre: temp.Nombre}, Course: &model.Course{IDCourses: course}, Startdate: startdate, Finishdate: finishdate}
 
 	r.DB.Create(&record)
 
@@ -122,7 +124,7 @@ func (r *queryResolver) GetCourses(ctx context.Context) ([]*model.Course, error)
 func (r *queryResolver) GetRecords(ctx context.Context) ([]*model.Record, error) {
 
 	var records []*model.Record
-	r.DB.Find(&records)
+	r.DB.Preload("Students").Preload("Courses").Find(&records)
 
 	return records, nil
 }
