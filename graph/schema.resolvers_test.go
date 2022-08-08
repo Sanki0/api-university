@@ -840,27 +840,618 @@ func TestDeleteRecordFail(t *testing.T) {
 }
 
 func TestGetStudent(t *testing.T) {
-	t.Skip("not implemented")
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	rows := sqlmock.NewRows([]string{"nombre", "dni", "direccion","fecha_nacimiento"}).
+	AddRow("Juan", "12345678", "Calle falsa 123", "2020-01-01")	
+	
+	mock.ExpectQuery("SELECT (.+) FROM students WHERE dni=?").WithArgs("12345678").WillReturnRows(rows)
+
+	r := Resolver{DB: db}
+
+	c:= client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
+
+	var resp struct {
+		GetStudent struct {
+			Nombre string
+			Dni string
+			Direccion string
+			Fecha_nacimiento string
+		}
+	}
+
+	c.MustPost(`
+	query {
+		getStudent(dni: "12345678"){
+			nombre
+			dni
+			direccion
+			fecha_nacimiento
+		}
+	  }`, &resp)
+	
+
+
+	require.Equal(t, "Juan", resp.GetStudent.Nombre)
+	require.Equal(t, "12345678", resp.GetStudent.Dni)
+	require.Equal(t, "Calle falsa 123", resp.GetStudent.Direccion)
+	require.Equal(t, "2020-01-01", resp.GetStudent.Fecha_nacimiento)
+
+
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestGetStudentFail(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	
+	mock.ExpectQuery("SELECT (.+) FROM students WHERE dni=?").WithArgs("12345678").WillReturnError(err)
+
+	r := Resolver{DB: db}
+
+	c:= client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
+
+	var resp struct {
+		Errors struct{
+			Message string
+			Path string
+		}
+		Data struct{
+			GetStudent struct{
+				Nulo error
+			}
+		}
+	}
+
+	c.Post(`
+	query {
+		getStudent(dni: "12345678"){
+			nombre
+			dni
+			direccion
+			fecha_nacimiento
+		}
+	  }`, &resp)
+	
+
+
+	require.Equal(t, nil, resp.Data.GetStudent.Nulo)
+
+
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
 }
 
 func TestGetCourse(t *testing.T) {
-	t.Skip("not implemented")
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	rows := sqlmock.NewRows([]string{"nombre", "descripcion", "temas"}).
+		AddRow("Devmente", "Introduccion", "Go, AWS")
+
+	mock.ExpectQuery("SELECT (.+) FROM courses WHERE nombre = ?").
+		WithArgs("Devmente").
+		WillReturnRows(rows)
+
+	r := Resolver{DB: db}
+
+	c:= client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
+
+	var resp struct {
+		GetCourse struct {
+			Nombre string
+			Descripcion string
+			Temas string
+		}
+	}
+
+	c.MustPost(`
+	query {
+		getCourse(nombre: "Devmente"){
+			nombre
+			descripcion
+			temas
+		}
+	  }`, &resp)
+	
+
+
+	require.Equal(t, "Devmente", resp.GetCourse.Nombre)
+	require.Equal(t, "Introduccion", resp.GetCourse.Descripcion)
+	require.Equal(t, "Go, AWS", resp.GetCourse.Temas)
+
+
+
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestGetCourseFail(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+
+
+	mock.ExpectQuery("SELECT (.+) FROM courses WHERE nombre = ?").
+		WithArgs("Devmente").
+		WillReturnError(err)
+
+	r := Resolver{DB: db}
+
+	c:= client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
+
+	var resp struct {
+		Errors struct{
+			Message string
+			Path string
+		}
+		Data struct{
+			GetCourse struct{
+				Nulo error
+			}
+		}
+	}
+
+	c.Post(`
+	query {
+		getCourse(nombre: "Devmente"){
+			nombre
+			descripcion
+			temas
+		}
+	  }`, &resp)
+	
+
+
+	require.Equal(t, nil, resp.Data.GetCourse.Nulo)
+	
+
+
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
 }
 
 func TestGetRecord(t *testing.T) {
-	t.Skip("not implemented")
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	rows := sqlmock.NewRows([]string{"student", "course", "startdate", "finishdate"}).
+		AddRow("12453124", "PHP", "2022-09-01", "2022-12-01")
+
+	mock.ExpectQuery ("SELECT (.+) FROM records WHERE student = ?").
+		WithArgs("12453124", "PHP").
+		WillReturnRows(rows)
+
+	r := Resolver{DB: db}
+
+	c:= client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
+
+	var resp struct {
+		GetRecord struct {
+			Student string
+			Course string
+			Startdate string
+			Finishdate string
+		}
+	}
+
+	c.MustPost(`
+	query {
+		getRecord(student: "12453124", course: "PHP"){
+			student
+			course
+			startdate
+			finishdate
+		}
+	  }`, &resp)
+	
+
+
+	require.Equal(t, "12453124", resp.GetRecord.Student)
+	require.Equal(t, "PHP", resp.GetRecord.Course)
+	require.Equal(t, "2022-09-01", resp.GetRecord.Startdate)
+	require.Equal(t, "2022-12-01", resp.GetRecord.Finishdate)
+
+
+
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestGetRecordFail(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+
+	mock.ExpectQuery ("SELECT (.+) FROM records WHERE student = ?").
+		WithArgs("12453124", "PHP").
+		WillReturnError(err)
+
+	r := Resolver{DB: db}
+
+	c:= client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
+
+	var resp struct {
+		Errors struct{
+			Message string
+			Path string
+		}
+		Data struct{
+			GetRecord struct{
+				Nulo error
+			}
+		}
+	}
+
+	c.Post(`
+	query {
+		getRecord(student: "12453124", course: "PHP"){
+			student
+			course
+			startdate
+			finishdate
+		}
+	  }`, &resp)
+	
+
+
+
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
 }
 
 func TestGetStudents(t *testing.T) {
-	t.Skip("not implemented")
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	rows := sqlmock.NewRows([]string{"nombre", "dni", "direccion","fecha_nacimiento"}).
+		AddRow("Juan", "12345678", "Calle falsa 123", "2020-01-01").
+        AddRow("Pedro", "87654321", "Calle verdadera 456", "2020-01-02").
+        AddRow("Maria", "12345679", "Calle falsa 123", "2020-01-01")
+
+
+	mock.ExpectQuery("SELECT (.+) FROM students").WillReturnRows(rows)
+
+	r := Resolver{DB: db}
+
+	c:= client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
+
+	var resp struct {
+		GetStudents []struct {
+			Nombre string
+			Dni string
+			Direccion string
+			Fecha_nacimiento string
+		}
+	}
+
+	c.MustPost(`
+	query {
+		getStudents{
+			nombre
+			dni
+			direccion
+			fecha_nacimiento
+		}
+	  }`, &resp)
+	
+
+	require.Equal(t, "Juan", resp.GetStudents[0].Nombre)
+	require.Equal(t, "12345678", resp.GetStudents[0].Dni)
+	require.Equal(t, "Calle falsa 123", resp.GetStudents[0].Direccion)
+	require.Equal(t, "2020-01-01", resp.GetStudents[0].Fecha_nacimiento)
+	require.Equal(t, "Pedro", resp.GetStudents[1].Nombre)
+	require.Equal(t, "87654321", resp.GetStudents[1].Dni)
+	require.Equal(t, "Calle verdadera 456", resp.GetStudents[1].Direccion)
+	require.Equal(t, "2020-01-02", resp.GetStudents[1].Fecha_nacimiento)
+	require.Equal(t, "Maria", resp.GetStudents[2].Nombre)
+	require.Equal(t, "12345679", resp.GetStudents[2].Dni)
+	require.Equal(t, "Calle falsa 123", resp.GetStudents[2].Direccion)
+	require.Equal(t, "2020-01-01", resp.GetStudents[2].Fecha_nacimiento)
+
+	
+
+
+
+
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestGetStudentsFail(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+
+
+	mock.ExpectQuery("SELECT (.+) FROM students").WillReturnError(err)
+
+	r := Resolver{DB: db}
+
+	c:= client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
+
+	var resp struct {
+		Errors struct{
+			Message string
+			Path string
+		}
+		Data struct{
+			GetStudents struct {
+				Nulo error
+			}
+		}
+	}
+
+	c.Post(`
+	query {
+		getStudents{
+			nombre
+			dni
+			direccion
+			fecha_nacimiento
+		}
+	  }`, &resp)
+	
+
+	require.Equal(t, nil, resp.Data.GetStudents.Nulo)
+	
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
 }
 
 func TestGetCourses(t *testing.T) {
-	t.Skip("not implemented")
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	rows := sqlmock.NewRows([]string{"nombre", "descripcion", "temas"}).
+	AddRow("Devmente", "Introduccion", "Go, AWS").
+	AddRow("PHP", "Introduccion", "PHP, MySQL").
+	AddRow("Java", "Introduccion", "Java, MySQL")
+
+
+
+	mock.ExpectQuery("SELECT (.+) FROM courses").WillReturnRows(rows)
+
+	r := Resolver{DB: db}
+
+	c:= client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
+
+	var resp struct {
+		GetCourses []struct{
+				Nombre string
+				Descripcion string
+				Temas string
+			}
+		}
+
+	c.MustPost(`
+	query {
+		getCourses{
+			nombre
+			descripcion
+			temas
+		}
+	  }`, &resp)
+	
+
+	require.Equal(t, "Devmente", resp.GetCourses[0].Nombre)
+	require.Equal(t, "Introduccion", resp.GetCourses[0].Descripcion)
+	require.Equal(t, "Go, AWS", resp.GetCourses[0].Temas)
+	require.Equal(t, "PHP", resp.GetCourses[1].Nombre)
+	require.Equal(t, "Introduccion", resp.GetCourses[1].Descripcion)
+	require.Equal(t, "PHP, MySQL", resp.GetCourses[1].Temas)
+	require.Equal(t, "Java", resp.GetCourses[2].Nombre)
+	require.Equal(t, "Introduccion", resp.GetCourses[2].Descripcion)
+	require.Equal(t, "Java, MySQL", resp.GetCourses[2].Temas)
+	
+
+
+
+
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+
+func TestGetCoursesFail(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+
+	mock.ExpectQuery("SELECT (.+) FROM courses").WillReturnError(err)
+
+	r := Resolver{DB: db}
+
+	c:= client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
+
+	var resp struct {
+		Errors struct{
+			Message string
+			Path string
+		}
+		Data struct{
+			GetCourses struct{
+				Nulo error
+			}
+		}
+	}
+
+	c.Post(`
+	query {
+		getCourses{
+			nombre
+			descripcion
+			temas
+		}
+	  }`, &resp)
+	
+
+	require.Equal(t, nil, resp.Data.GetCourses.Nulo)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
 }
 
 func TestGetRecords(t *testing.T) {
-	t.Skip("not implemented")
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	rows := sqlmock.NewRows([]string{"student", "course", "startdate", "finishdate"}).
+		AddRow("12453124", "PHP", "2022-09-01", "2022-12-01").
+		AddRow("12453124", "Java", "2022-09-01", "2022-12-01").
+		AddRow("12453124", "Python", "2022-09-01", "2022-12-01")
+
+
+
+	mock.ExpectQuery("SELECT (.+) FROM records").WillReturnRows(rows)
+
+	r := Resolver{DB: db}
+
+	c:= client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
+
+	var resp struct {
+		GetRecords []struct {
+			Student string
+			Course string
+			Startdate string
+			Finishdate string
+		}
+	}
+
+	c.MustPost(`
+	query {
+		getRecords{
+			student
+			course
+			startdate
+			finishdate
+		}
+	  }`, &resp)
+	
+
+
+	require.Equal(t, "12453124", resp.GetRecords[0].Student)
+	require.Equal(t, "PHP", resp.GetRecords[0].Course)
+	require.Equal(t, "2022-09-01", resp.GetRecords[0].Startdate)
+	require.Equal(t, "2022-12-01", resp.GetRecords[0].Finishdate)
+	require.Equal(t, "12453124", resp.GetRecords[1].Student)
+	require.Equal(t, "Java", resp.GetRecords[1].Course)
+	require.Equal(t, "2022-09-01", resp.GetRecords[1].Startdate)
+	require.Equal(t, "2022-12-01", resp.GetRecords[1].Finishdate)
+	require.Equal(t, "12453124", resp.GetRecords[2].Student)
+	require.Equal(t, "Python", resp.GetRecords[2].Course)
+	require.Equal(t, "2022-09-01", resp.GetRecords[2].Startdate)
+	require.Equal(t, "2022-12-01", resp.GetRecords[2].Finishdate)
+
+
+
+
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+
+func TestGetRecordsFail(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+
+	mock.ExpectQuery("SELECT (.+) FROM records").WillReturnError(err)
+
+	r := Resolver{DB: db}
+
+	c:= client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
+
+	var resp struct {
+		Errors struct{
+			Message string
+			Path string
+		}
+		Data struct{
+			GetRecords struct {
+				Nulo error
+			}
+		}
+	}
+
+	c.Post(`
+	query {
+		getRecords{
+			student
+			course
+			startdate
+			finishdate
+		}
+	  }`, &resp)
+	
+
+
+	require.Equal(t, nil, resp.Data.GetRecords.Nulo)
+
+
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
 }
 
 
