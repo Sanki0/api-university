@@ -1,8 +1,9 @@
 package graph
 
 import (
+	"database/sql"
+
 	"github.com/Sanki0/api-university/graph/connection"
-	"github.com/jinzhu/gorm"
 )
 
 // This file will not be regenerated automatically.
@@ -10,7 +11,7 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct{
-	DB *gorm.DB
+	DB *sql.DB
 }
 
 func (r *Resolver) InitializePool(){

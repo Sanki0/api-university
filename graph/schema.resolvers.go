@@ -15,7 +15,12 @@ import (
 func (r *mutationResolver) CreateStudent(ctx context.Context, nombre *string, dni string, direccion *string, fechaNacimiento *string) (*model.Student, error) {
 	student := model.Student{Nombre: nombre, Dni: dni, Direccion: direccion, FechaNacimiento: fechaNacimiento}
 
-	r.DB.Create(&student)
+	_,err := r.DB.Exec("INSERT INTO students(Nombre, Dni, Direccion, Fecha_nacimiento) VALUES(?, ?, ?, ?)", 
+						student.Nombre, student.Dni, student.Direccion, student.FechaNacimiento)
+
+    if err != nil {
+        return nil, err
+    }
 
 	return &student, nil
 
@@ -27,7 +32,12 @@ func (r *mutationResolver) CreateCourse(ctx context.Context, nombre string, desc
 
 	course := model.Course{Nombre: nombre, Descripcion: descripcion, Temas: temas}
 
-	r.DB.Create(&course)
+	_,err := r.DB.Exec("INSERT INTO courses(nombre, descripcion, temas) VALUES(?,?,?)", 
+						nombre, descripcion, temas)
+
+	if err != nil {
+		return nil, err
+	}
 
 	return &course, nil
 }
@@ -38,8 +48,12 @@ func (r *mutationResolver) CreateRecord(ctx context.Context, student string, cou
 
 	record := model.Record{Student: student, Course: course, Startdate: startdate, Finishdate: finishdate}
 
-	r.DB.Create(&record)
+	_,err := r.DB.Exec("INSERT INTO records(student, course, startdate, finishdate) VALUES(?, ?, ?, ?)",
+						student, course, startdate, finishdate)
 
+	if err != nil {
+		return nil, err
+	}
 	return &record, nil
 }
 
@@ -48,7 +62,12 @@ func (r *mutationResolver) UpdateStudent(ctx context.Context, nombre *string, dn
 
 	student := model.Student{Dni: dni}
 
-	r.DB.Model(&student).Where("dni = ?", dni).Update(&model.Student{Nombre: nombre, Direccion: direccion, FechaNacimiento: fechaNacimiento})
+	_, err := r.DB.Exec("UPDATE students SET Nombre=?, Dni=?, Direccion=?, Fecha_nacimiento=? WHERE dni=?", 
+				nombre, dni, direccion, fechaNacimiento, dni)
+
+	if err != nil {
+		return nil, err
+	}
 
 	return &student, nil
 
@@ -60,7 +79,13 @@ func (r *mutationResolver) UpdateCourse(ctx context.Context, nombre string, desc
 
 	course := model.Course{Nombre: nombre}
 
-	r.DB.Model(&course).Where("nombre = ?", nombre).Update(&model.Course{Descripcion: descripcion, Temas: temas})
+	_, err :=
+	r.DB.Exec("UPDATE courses SET nombre = ?, descripcion = ?, temas = ? WHERE nombre = ?", 
+				nombre, descripcion, temas, nombre)
+
+	if err != nil {
+		return nil, err
+	}
 
 	return &course, nil
 }
@@ -71,7 +96,13 @@ func (r *mutationResolver) UpdateRecord(ctx context.Context, student string, cou
 
 	record := model.Record{Student: student, Course: course}
 
-	r.DB.Model(&record).Where("student = ? AND course = ?", student, course).Update(&model.Record{Startdate: startdate, Finishdate: finishdate})
+  _, err :=
+	  r.DB.Exec("UPDATE records SET student = ?, course = ?, startdate = ?, finishdate = ? WHERE student = ? AND course = ?",
+	 			student, course, startdate, finishdate, student, course)	
+
+	if err != nil {
+		return nil, err
+	}
 
 	return &record, nil
 }
@@ -82,7 +113,11 @@ func (r *mutationResolver) DeleteStudent(ctx context.Context, dni string) (*mode
 
 	student := model.Student{Dni: dni}
 
-	r.DB.Where("dni = ?", dni).First(&student).Delete(&student)
+	_, err := r.DB.Exec("DELETE FROM students WHERE dni = ?", dni)
+
+	if err != nil {
+		return nil, err
+	}
 
 	return &student, nil
 }
@@ -92,7 +127,11 @@ func (r *mutationResolver) DeleteCourse(ctx context.Context, nombre string) (*mo
 
 	course := model.Course{Nombre: nombre}
 
-	r.DB.Where("nombre = ?", nombre).First(&course).Delete(&course)
+	_, err := r.DB.Exec("DELETE FROM courses WHERE nombre = ?", nombre)
+
+	if err != nil {
+		return nil, err
+	}
 
 	return &course, nil
 }
@@ -102,7 +141,11 @@ func (r *mutationResolver) DeleteRecord(ctx context.Context, student string, cou
 
 	record := model.Record{Student: student, Course: course}
 
-	r.DB.Where("student = ? AND course = ?", student, course).First(&record).Delete(&record)
+	  _, err := r.DB.Exec("DELETE FROM records WHERE student = ? AND course = ?", student, course)
+
+	if err != nil {
+		return nil, err
+	}
 
 	return &record, nil
 }
@@ -111,25 +154,69 @@ func (r *mutationResolver) DeleteRecord(ctx context.Context, student string, cou
 func (r *queryResolver) GetStudents(ctx context.Context) ([]*model.Student, error) {
 
 	var students []*model.Student
-	r.DB.Find(&students)
+	rows, err := r.DB.Query("SELECT * FROM students")
 
-	return students, nil
+
+    if err != nil {
+        return nil, err
+    }
+
+    defer rows.Close()
+
+    for rows.Next() {
+        var s model.Student
+        if err := rows.Scan(&s.Nombre, &s.Dni, &s.Direccion, &s.FechaNacimiento); err != nil {
+			return nil, err
+		}
+        students = append(students, &s)
+    }
+
+    return students, nil
 }
 
 // GetCourses is the resolver for the getCourses field.
 func (r *queryResolver) GetCourses(ctx context.Context) ([]*model.Course, error) {
 
 	var courses []*model.Course
-	r.DB.Find(&courses)
+	rows, err := r.DB.Query("SELECT * FROM courses")
 
-	return courses, nil
+    if err != nil {
+        return nil, err
+    }
+
+    defer rows.Close()
+
+    for rows.Next() {
+        var c model.Course
+        if err := rows.Scan(&c.Nombre, &c.Descripcion, &c.Temas); err != nil {
+			return nil, err
+		}
+        courses = append(courses, &c)
+    }
+
+    return courses, nil
 }
 
 // GetRecords is the resolver for the getRecords field.
 func (r *queryResolver) GetRecords(ctx context.Context) ([]*model.Record, error) {
 
 	var records []*model.Record
-	r.DB.Find(&records)
+	rows, err := r.DB.Query("SELECT * FROM records")
+  
+  
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var r model.Record
+		if err := rows.Scan(&r.Student, &r.Course, &r.Startdate, &r.Finishdate); err != nil {
+			return nil, err
+		}
+		records = append(records, &r)
+	}
 
 	return records, nil
 }
@@ -139,7 +226,12 @@ func (r *queryResolver) GetStudent(ctx context.Context, dni string) (*model.Stud
 
 	student := model.Student{Dni: dni}
 
-	r.DB.Where("dni = ?", dni).First(&student)
+	err := r.DB.QueryRow("SELECT * FROM students WHERE dni = ?", 
+  					dni).Scan(&student.Nombre, &student.Dni, &student.Direccion, &student.FechaNacimiento)
+	if err != nil {
+		return nil, err
+	}
+
 
 	return &student, nil
 }
@@ -149,7 +241,12 @@ func (r *queryResolver) GetCourse(ctx context.Context, nombre string) (*model.Co
 
 	course := model.Course{Nombre: nombre}
 
-	r.DB.Where("nombre = ?", nombre).First(&course)
+	err := r.DB.QueryRow("SELECT * FROM courses WHERE nombre = ?", 
+	nombre).Scan(&course.Nombre, &course.Descripcion, &course.Temas)
+
+	if err != nil {
+		return nil, err
+	}
 
 	return &course, nil
 }
@@ -159,7 +256,12 @@ func (r *queryResolver) GetRecord(ctx context.Context, student string, course st
 
 	record := model.Record{Student: student, Course: course}
 
-	r.DB.Where("student = ? AND course = ?", student, course).First(&record)
+	err := r.DB.QueryRow("SELECT * FROM records WHERE student = ? AND course = ?", 
+	student, course).Scan(&record.Student, &record.Course, &record.Startdate, &record.Finishdate)
+
+	if err != nil {
+		return nil, err
+	}
 
 	return &record, nil
 }
