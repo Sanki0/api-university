@@ -13,7 +13,7 @@ jobs:
         with:
           go-version: '1.18'
       - name: Run coverage
-        working-directory: ./graph/test
+        working-directory: ./graph/test/
         run: go test -race -coverprofile=coverage.xml -covermode=atomic
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
