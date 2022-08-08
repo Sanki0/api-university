@@ -578,15 +578,265 @@ func TestUpdateRecordFail(t *testing.T) {
 }
 
 func TestDeleteStudent(t *testing.T) {
-	t.Skip("not implemented")
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	
+	mock.ExpectExec("DELETE FROM students").WithArgs("12345678").WillReturnResult(sqlmock.NewResult(1, 1))
+	
+	r := Resolver{DB: db}
+
+	c:= client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
+
+	var resp struct {
+		DeleteStudent struct {
+			Nombre string
+			Dni string
+			Direccion string
+			Fecha_nacimiento string
+		}
+	}
+
+	c.MustPost(`
+	mutation {
+		deleteStudent(dni: "12345678"){
+			nombre
+			dni
+			direccion
+			fecha_nacimiento
+		}
+	  }`, &resp)
+	
+
+
+	require.Equal(t, "12345678", resp.DeleteStudent.Dni)
+
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
 }
 
+
+func TestDeleteStudentFail(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	
+	mock.ExpectExec("DELETE FROM students").WithArgs("12345678").WillReturnError(err)
+	
+	r := Resolver{DB: db}
+
+	c:= client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
+
+	var resp struct {
+		Errors struct{
+			Message string
+			Path string
+		}
+		Data struct{
+			DeleteStudent struct{
+				Nulo error
+			}
+		}
+	}
+
+	c.Post(`
+	mutation {
+		deleteStudent(dni: "12345678"){
+			nombre
+			dni
+			direccion
+			fecha_nacimiento
+		}
+	  }`, &resp)
+	
+
+
+	require.Equal(t, nil, resp.Data.DeleteStudent.Nulo)
+
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
 func TestDeleteCourse(t *testing.T) {
-	t.Skip("not implemented")
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	
+	mock.ExpectExec("DELETE FROM courses").WithArgs("Devmente").WillReturnResult(sqlmock.NewResult(1, 1))	
+	r := Resolver{DB: db}
+
+	c:= client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
+
+	var resp struct {
+		DeleteCourse struct {
+			Nombre string
+			Descripcion string
+			Temas string
+		}
+	}
+
+	c.MustPost(`
+	mutation {
+		deleteCourse(nombre: "Devmente"){
+			nombre
+			descripcion
+			temas
+		}
+	  }`, &resp)
+	
+
+
+	require.Equal(t, "Devmente", resp.DeleteCourse.Nombre)
+
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestDeleteCourseFail(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	
+	mock.ExpectExec("DELETE FROM courses").WithArgs("Devmente").WillReturnError(err)
+	
+	r := Resolver{DB: db}
+
+	c:= client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
+
+	var resp struct {
+		Errors struct{
+			Message string
+			Path string
+		}
+		Data struct{
+			DeleteCourse struct{
+				Nulo error
+			}
+		}
+	}
+
+	c.Post(`
+	mutation {
+		deleteCourse(nombre: "Devmente"){
+			nombre
+			descripcion
+			temas
+		}
+	  }`, &resp)
+	
+
+
+	require.Equal(t, nil, resp.Data.DeleteCourse.Nulo)
+
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
 }
 
 func TestDeleteRecord(t *testing.T) {
-	t.Skip("not implemented")
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	
+	mock.ExpectExec("DELETE FROM records").WithArgs("12453124","PHP").WillReturnResult(sqlmock.NewResult(1, 1))
+	r := Resolver{DB: db}
+
+	c:= client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
+
+	var resp struct {
+		DeleteRecord struct {
+			Student string
+			Course string
+			Startdate 	string
+			Finishdate 	string
+		}
+	}
+
+	c.MustPost(`
+	mutation {
+		deleteRecord(student: "12453124", course: "PHP"){
+			student
+			course
+			startdate
+			finishdate
+		}
+	  }`, &resp)
+	
+
+
+	require.Equal(t, "12453124", resp.DeleteRecord.Student)
+	require.Equal(t, "PHP", resp.DeleteRecord.Course)
+
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestDeleteRecordFail(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	
+	mock.ExpectExec("DELETE FROM records").WithArgs("12453124","PHP").WillReturnError(err)
+	r := Resolver{DB: db}
+
+	c:= client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
+
+	var resp struct {
+		Errors struct{
+			Message string
+			Path string
+		}
+		Data struct{
+			DeleteRecord struct{
+				Nulo error
+			}
+		}
+	}
+
+	c.Post(`
+	mutation {
+		deleteRecord(student: "12453124", course: "PHP"){
+			student
+			course
+			startdate
+			finishdate
+		}
+	  }`, &resp)
+		
+
+	require.Equal(t, nil, resp.Data.DeleteRecord.Nulo)
+
+
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
 }
 
 func TestGetStudent(t *testing.T) {
