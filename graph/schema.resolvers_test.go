@@ -60,6 +60,56 @@ func TestCreateStudent(t *testing.T) {
 
 }
 
+func TestCreateStudentFail(t *testing.T) {
+	
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	defer db.Close()
+
+	
+	
+	mock.ExpectExec("INSERT INTO students").
+				WithArgs("jose", "71231231", "jocke", "18/09/01").
+				WillReturnError(err)
+	
+	r := Resolver{DB: db}
+
+	c:= client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
+
+	var resp struct {
+		Errors struct{
+			Message string
+			Path string
+		}
+		Data struct{
+			CreateStudent struct{
+				nulo error
+			}
+		}
+	}
+
+	c.Post(`
+	mutation {
+		createStudent(nombre: "jose", dni: "71231231", direccion: "jocke", fecha_nacimiento: "18/09/01"){
+			nombre
+			dni
+			direccion
+			fecha_nacimiento
+	  	}
+	}`, &resp)
+	
+	require.Equal(t, nil, resp.Data.CreateStudent.nulo)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+
+}
+
+
+
 func TestCreateCourse(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
