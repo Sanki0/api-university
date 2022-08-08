@@ -1,4 +1,4 @@
-package graph
+package resolver
 
 import (
 	"database/sql"
@@ -10,10 +10,10 @@ import (
 //
 // It serves as dependency injection for your app, add any dependencies you require here.
 
-type Resolver struct{
+type Resolver struct {
 	DB *sql.DB
 }
 
-func (r *Resolver) InitializePool(){
+func (r *Resolver) InitializePool() {
 	r.DB = connection.FetchConnection()
 }

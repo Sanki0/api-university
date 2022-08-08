@@ -7,8 +7,8 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/Sanki0/api-university/graph"
 	"github.com/Sanki0/api-university/graph/generated"
+	"github.com/Sanki0/api-university/graph/resolver"
 )
 
 const defaultPort = "8080"
@@ -19,7 +19,7 @@ func main() {
 		port = defaultPort
 	}
 
-	r := graph.Resolver{}
+	r := resolver.Resolver{}
 	r.InitializePool()
 
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r}))
