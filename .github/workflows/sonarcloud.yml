@@ -2,7 +2,9 @@ name: sonarcloud
 
 on:
   push:
-    branches: [ main, feature/sonarcloud ]
+    branches: 
+      - main
+      - feature/sonarcloud
 
 
 jobs:
