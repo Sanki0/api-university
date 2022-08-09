@@ -1,9 +1,9 @@
 CREATE TABLE `students`
 (
-    nombre varchar(255) NOT NULL,
-    dni varchar(255) NOT NULL,
-    direccion varchar(255) NOT NULL,
-    fecha_nacimiento varchar(255) NOT NULL,
+    nombre VARCHAR2(255) NOT NULL,
+    dni VARCHAR2(255) NOT NULL,
+    direccion VARCHAR2(255) NOT NULL,
+    fecha_nacimiento VARCHAR2(255) NOT NULL,
     PRIMARY KEY (`dni`)
 );
 INSERT INTO `students` (`nombre`, `dni`,`direccion`,`fecha_nacimiento`) VALUES 
@@ -16,9 +16,9 @@ INSERT INTO `students` (`nombre`, `dni`,`direccion`,`fecha_nacimiento`) VALUES
 
 CREATE TABLE `courses`
 (
-    nombre varchar(255) NOT NULL,
-    descripcion varchar(255) NOT NULL,
-    temas varchar(255) NOT NULL,
+    nombre VARCHAR2(255) NOT NULL,
+    descripcion VARCHAR2(255) NOT NULL,
+    temas VARCHAR2(255) NOT NULL,
     PRIMARY KEY (`nombre`)
 );
 INSERT INTO `courses` (`nombre`, `descripcion`, `temas`) VALUES 
@@ -31,10 +31,10 @@ INSERT INTO `courses` (`nombre`, `descripcion`, `temas`) VALUES
 
 CREATE TABLE records
 (
-    student varchar(255), 
-    course varchar(255),
-    startdate varchar(255) NOT NULL,
-    finishdate varchar(255) NOT NULL,
+    student VARCHAR2(255), 
+    course VARCHAR2(255),
+    startdate VARCHAR2(255) NOT NULL,
+    finishdate VARCHAR2(255) NOT NULL,
     PRIMARY KEY (student,course ),
     FOREIGN KEY (student) REFERENCES students(dni) ,
     FOREIGN KEY (course) REFERENCES courses(nombre)    
