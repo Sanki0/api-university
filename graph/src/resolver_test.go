@@ -1,13 +1,11 @@
-package test
+package src
 
 import (
 	"testing"
-
-	"github.com/Sanki0/api-university/graph/resolver"
 )
 
 func TestResolverInitialize(t *testing.T) {
-	var r resolver.Resolver
+	var r Resolver
 	r.InitializePool()
 	if r.DB == nil {
 		t.Error("Resolver.InitializePool() failed")

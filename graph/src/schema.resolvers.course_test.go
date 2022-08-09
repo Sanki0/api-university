@@ -1,4 +1,4 @@
-package test
+package src
 
 import (
 	"testing"
@@ -7,7 +7,6 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/Sanki0/api-university/graph/generated"
-	"github.com/Sanki0/api-university/graph/resolver"
 
 	"github.com/stretchr/testify/require"
 )
@@ -23,7 +22,7 @@ func TestCreateCourse(t *testing.T) {
 		WithArgs("Devmente", "Introduccion", "Go, AWS").
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
-	r := resolver.Resolver{DB: db}
+	r := Resolver{DB: db}
 
 	c := client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
 
@@ -64,7 +63,7 @@ func TestCreateCourseFail(t *testing.T) {
 		WithArgs("Devmente", "Introduccion", "Go, AWS").
 		WillReturnError(err)
 
-	r := resolver.Resolver{DB: db}
+	r := Resolver{DB: db}
 
 	c := client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
 
@@ -107,7 +106,7 @@ func TestUpdateCourse(t *testing.T) {
 		WithArgs("Devmente", "Introduccion", "Go, AWS", "Devmente").
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
-	r := resolver.Resolver{DB: db}
+	r := Resolver{DB: db}
 
 	c := client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
 
@@ -145,7 +144,7 @@ func TestUpdateCourseFail(t *testing.T) {
 	mock.ExpectExec("UPDATE courses").
 		WithArgs("Devmente", "Introduccion", "Go, AWS", "Devmente").
 		WillReturnError(err)
-	r := resolver.Resolver{DB: db}
+	r := Resolver{DB: db}
 
 	c := client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
 
@@ -185,7 +184,7 @@ func TestDeleteCourse(t *testing.T) {
 	defer db.Close()
 
 	mock.ExpectExec("DELETE FROM courses").WithArgs("Devmente").WillReturnResult(sqlmock.NewResult(1, 1))
-	r := resolver.Resolver{DB: db}
+	r := Resolver{DB: db}
 
 	c := client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
 
@@ -222,7 +221,7 @@ func TestDeleteCourseFail(t *testing.T) {
 
 	mock.ExpectExec("DELETE FROM courses").WithArgs("Devmente").WillReturnError(err)
 
-	r := resolver.Resolver{DB: db}
+	r := Resolver{DB: db}
 
 	c := client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
 
@@ -268,7 +267,7 @@ func TestGetCourse(t *testing.T) {
 		WithArgs("Devmente").
 		WillReturnRows(rows)
 
-	r := resolver.Resolver{DB: db}
+	r := Resolver{DB: db}
 
 	c := client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
 
@@ -309,7 +308,7 @@ func TestGetCourseFail(t *testing.T) {
 		WithArgs("Devmente").
 		WillReturnError(err)
 
-	r := resolver.Resolver{DB: db}
+	r := Resolver{DB: db}
 
 	c := client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
 
@@ -355,7 +354,7 @@ func TestGetCourses(t *testing.T) {
 
 	mock.ExpectQuery("SELECT (.+) FROM courses").WillReturnRows(rows)
 
-	r := resolver.Resolver{DB: db}
+	r := Resolver{DB: db}
 
 	c := client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
 
@@ -400,7 +399,7 @@ func TestGetCoursesFail(t *testing.T) {
 
 	mock.ExpectQuery("SELECT (.+) FROM courses").WillReturnError(err)
 
-	r := resolver.Resolver{DB: db}
+	r := Resolver{DB: db}
 
 	c := client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
 
