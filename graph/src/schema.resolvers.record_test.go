@@ -1,4 +1,4 @@
-package test
+package src
 
 import (
 	"testing"
@@ -7,8 +7,6 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/Sanki0/api-university/graph/generated"
-	"github.com/Sanki0/api-university/graph/resolver"
-
 	"github.com/stretchr/testify/require"
 )
 
@@ -23,7 +21,7 @@ func TestCreateRecord(t *testing.T) {
 		WithArgs("12453124", "PHP", "2022-09-01", "2022-12-01").
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
-	r := resolver.Resolver{DB: db}
+	r := Resolver{DB: db}
 
 	c := client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
 
@@ -68,7 +66,7 @@ func TestCreateRecordFail(t *testing.T) {
 		WithArgs("12453124", "PHP", "2022-09-01", "2022-12-01").
 		WillReturnError(err)
 
-	r := resolver.Resolver{DB: db}
+	r := Resolver{DB: db}
 
 	c := client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
 
@@ -113,7 +111,7 @@ func TestUpdateRecord(t *testing.T) {
 		WithArgs("12453124", "PHP", "2022-09-01", "2022-12-01", "12453124", "PHP").
 		WillReturnResult(sqlmock.NewResult(1, 1))
 
-	r := resolver.Resolver{DB: db}
+	r := Resolver{DB: db}
 
 	c := client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
 
@@ -155,7 +153,7 @@ func TestUpdateRecordFail(t *testing.T) {
 		WithArgs("12453124", "PHP", "2022-09-01", "2022-12-01", "12453124", "PHP").
 		WillReturnError(err)
 
-	r := resolver.Resolver{DB: db}
+	r := Resolver{DB: db}
 
 	c := client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
 
@@ -196,7 +194,7 @@ func TestDeleteRecord(t *testing.T) {
 	defer db.Close()
 
 	mock.ExpectExec("DELETE FROM records").WithArgs("12453124", "PHP").WillReturnResult(sqlmock.NewResult(1, 1))
-	r := resolver.Resolver{DB: db}
+	r := Resolver{DB: db}
 
 	c := client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
 
@@ -235,7 +233,7 @@ func TestDeleteRecordFail(t *testing.T) {
 	defer db.Close()
 
 	mock.ExpectExec("DELETE FROM records").WithArgs("12453124", "PHP").WillReturnError(err)
-	r := resolver.Resolver{DB: db}
+	r := Resolver{DB: db}
 
 	c := client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
 
@@ -282,7 +280,7 @@ func TestGetRecord(t *testing.T) {
 		WithArgs("12453124", "PHP").
 		WillReturnRows(rows)
 
-	r := resolver.Resolver{DB: db}
+	r := Resolver{DB: db}
 
 	c := client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
 
@@ -326,7 +324,7 @@ func TestGetRecordFail(t *testing.T) {
 		WithArgs("12453124", "PHP").
 		WillReturnError(err)
 
-	r := resolver.Resolver{DB: db}
+	r := Resolver{DB: db}
 
 	c := client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
 
@@ -371,7 +369,7 @@ func TestGetRecords(t *testing.T) {
 
 	mock.ExpectQuery("SELECT (.+) FROM records").WillReturnRows(rows)
 
-	r := resolver.Resolver{DB: db}
+	r := Resolver{DB: db}
 
 	c := client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
 
@@ -421,7 +419,7 @@ func TestGetRecordsFail(t *testing.T) {
 
 	mock.ExpectQuery("SELECT (.+) FROM records").WillReturnError(err)
 
-	r := resolver.Resolver{DB: db}
+	r := Resolver{DB: db}
 
 	c := client.New(handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &r})))
 

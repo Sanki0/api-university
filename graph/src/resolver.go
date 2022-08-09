@@ -1,4 +1,4 @@
-package resolver
+package src
 
 import (
 	"database/sql"
